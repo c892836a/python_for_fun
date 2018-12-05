@@ -12,9 +12,11 @@ from PyQt5.QtWidgets import (QFileDialog, QAbstractItemView, QListView,
 from PyQt5.QtCore import QUrl
 
 
+
 # FTP upload function
 
 ftp_used_size = 0
+
 
 class getExistingDirectories(QFileDialog):
     def __init__(self, *args):
@@ -54,6 +56,11 @@ def ftp_upload(filepath, title, file_array):
         for name in file_array:
             print("uploading " + name)
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
+        for root, _dirs, files in ftp_host.walk("/WWW"):
+            global ftp_used_size
+            for name in files:
+                fullpath = ftp_host.path.join(root, name)
+                ftp_used_size += ftp_host.path.getsize(fullpath)
 
 
 # create html content
@@ -129,6 +136,8 @@ def main():
             print("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
+            result_url += "FTP user {} used {} MB".format(
+                user, str(int(ftp_used_size / 1024 / 1024)))
             os.remove(path_list[i] + ".html")
 
         easygui.codebox(text=result_url.strip(),
@@ -142,7 +151,8 @@ def main():
             ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
             result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
-
+            result_url += "FTP user {} used {} MB".format(
+                user, str(int(ftp_used_size / 1024 / 1024)))
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 

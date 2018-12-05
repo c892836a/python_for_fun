@@ -2,3 +2,12 @@ thirdParty/goldEgg.ico
 thirdParty/blueBird.ico
 setup.py
 hello.py
+dist/createComicHtml.exe
+dist/FixPIME.exe
+__pycache__/scheduleRclone.cpython-36.pyc
+__pycache__/hello.cpython-36.pyc
+__pycache__/hello.cpython-34.pyc
+__pycache__/createComicHtml.cpython-34.pyc
+__pycache__/FixPIME.cpython-36.pyc
+dist/scheduleRclone.exe
+__pycache__/createComicHtml.cpython-36.pyc
