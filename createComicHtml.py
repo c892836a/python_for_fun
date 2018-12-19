@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QFileDialog, QAbstractItemView, QListView,
 from PyQt5.QtCore import QUrl
 
 
+ftp_used_size = 0
 
 # FTP upload function
 
@@ -63,6 +64,16 @@ def ftp_upload(filepath, title, file_array):
                 ftp_used_size += ftp_host.path.getsize(fullpath)
 
 
+def ftp_singlehtml_upload(filepath, web_title):
+    with ftputil.FTPHost(
+            host,
+            user,
+            password) as ftp_host:
+        ftp_host.chdir("WWW")
+        print("uploading {}\\{}.html".format(filepath, web_title))
+        ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
+                        "{}.html".format(web_title).encode("utf-8"))
+
 # create html content
 
 
@@ -89,6 +100,35 @@ def create_html(web_title, file_array, path):
 
     # create html file
     with open(path + ".html", "w", encoding='utf8') as f:
+        f.write("<!DOCTYPE html>\n")
+        f.write(_html.render())
+
+
+def create_mainpage_html(url_list, path, web_title):
+    _html = dmtags.html()
+    _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
+                             dmtags.body(style="background-color:#fcfbeb;"))
+    with _head:
+        dmtags.meta(charset="utf-8")
+        dmtags.link(href="https://fonts.googleapis.com/css?family=M+PLUS+1p:500",
+                    rel="stylesheet")
+        dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
+                    "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
+                    rel="shortcut icon", type="image/vnd.microsoft.icon")
+    main_div = _body.add(dmtags.div(style="text-align:center; \
+        font-family: 'M PLUS 1p', sans-serif; font-size:32px;"))
+
+    with main_div:
+        _p1 = dmtags.p(style="color:#14005C;")
+        for url in url_list:
+            _p2 = dmtags.p(style="font-size:24px;")
+            with _p2:
+                dmtags.a(url[0], target="_blank", href="{}".format(url[1]))
+        with _p1:
+            text("{}".format(web_title))
+
+    # create html file
+    with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render())
 
@@ -120,7 +160,7 @@ def main():
 
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
-               "Open Html & Upload to FTP", "Exit"]
+               "Open Html & Upload to FTP", "Create a main page", "Exit"]
     choise_action = easygui.choicebox("Create " + path + ".html successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
@@ -151,10 +191,31 @@ def main():
             ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
             result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
-            result_url += "FTP user {} used {} MB".format(
-                user, str(int(ftp_used_size / 1024 / 1024)))
+
+        result_url += "FTP user {} used {} MB".format(
+            user, str(int(ftp_used_size / 1024 / 1024)))
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
+
+    elif choise_action == "Create a main page":
+        url_list = []
+        for i in range(len(path_list)):
+            ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
+            map_list = [webtitle_list[i], "http://{}/~{}/{}.html".format(
+                host, user, urllib.parse.quote(webtitle_list[i]))]
+            url_list.append(map_list)
+
+        os.chdir(path_list[0])
+        os.chdir(os.pardir)
+        web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
+        create_mainpage_html(url_list, os.getcwd(), web_title)
+        ftp_singlehtml_upload(os.getcwd(), web_title)
+        result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
+            web_title, host, user, urllib.parse.quote(web_title))
+        result_url += "FTP user {} used {} MB".format(
+            user, str(int(ftp_used_size / 1024 / 1024)))
+        easygui.codebox(text=result_url.strip(),
+                        title="Create a main page", msg="Copy the url")
 
     elif choise_action == "Exit":
         pass
