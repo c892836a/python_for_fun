@@ -57,11 +57,12 @@ def ftp_upload(filepath, title, file_array):
         for name in file_array:
             print("uploading " + name)
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
-        for root, _dirs, files in ftp_host.walk("/WWW"):
-            global ftp_used_size
-            for name in files:
-                fullpath = ftp_host.path.join(root, name)
-                ftp_used_size += ftp_host.path.getsize(fullpath)
+        global ftp_used_size
+        if ftp_used_size == 0:
+            for root, _dirs, files in ftp_host.walk("/WWW"):
+                for name in files:
+                    fullpath = ftp_host.path.join(root, name)
+                    ftp_used_size += ftp_host.path.getsize(fullpath)
 
 
 def ftp_singlehtml_upload(filepath, web_title):
@@ -83,14 +84,14 @@ def create_html(web_title, file_array, path):
                              dmtags.body(style="background-color:black;"))
     with _head:
         dmtags.meta(charset="utf-8")
-        dmtags.link(href="https://fonts.googleapis.com/css?family=M+PLUS+1p:500",
+        dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
 
-    main_div = _body.add(dmtags.div(style="text-align:center; \
-        font-family: 'M PLUS 1p', sans-serif; font-size:32px;"))
+    main_div = _body.add(dmtags.div(
+        style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
     with main_div:
         _p1 = dmtags.p(style="color:#C2FFFC;")
         for pic in file_array:
@@ -110,13 +111,13 @@ def create_mainpage_html(url_list, path, web_title):
                              dmtags.body(style="background-color:#fcfbeb;"))
     with _head:
         dmtags.meta(charset="utf-8")
-        dmtags.link(href="https://fonts.googleapis.com/css?family=M+PLUS+1p:500",
+        dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
-    main_div = _body.add(dmtags.div(style="text-align:center; \
-        font-family: 'M PLUS 1p', sans-serif; font-size:32px;"))
+    main_div = _body.add(dmtags.div(
+        style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
 
     with main_div:
         _p1 = dmtags.p(style="color:#14005C;")

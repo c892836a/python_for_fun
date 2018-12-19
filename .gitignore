@@ -11,3 +11,16 @@ __pycache__/createComicHtml.cpython-34.pyc
 __pycache__/FixPIME.cpython-36.pyc
 dist/scheduleRclone.exe
 __pycache__/createComicHtml.cpython-36.pyc
+build/createComicHtml/xref-createComicHtml.html
+build/createComicHtml/createComicHtml.exe.manifest
+build/createComicHtml/Tree-01.toc
+build/createComicHtml/PYZ-00.toc
+build/createComicHtml/PKG-00.toc
+build/createComicHtml/EXE-00.toc
+createComicHtml.spec
+build/createComicHtml/warn-createComicHtml.txt
+build/createComicHtml/base_library.zip
+build/createComicHtml/Tree-00.toc
+build/createComicHtml/PYZ-00.pyz
+build/createComicHtml/PKG-00.pkg
+build/createComicHtml/Analysis-00.toc
