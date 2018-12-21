@@ -67,9 +67,8 @@ def ftp_singlehtml_upload(filepath, web_title):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        print("uploading {}\\{}.html".format(
-            filepath.replace("&", "$"), web_title.replace("&", "$")))
-        ftp_host.upload(("{}\\{}.html".format(filepath.replace("&", "$"), web_title.replace("&", "$"))).encode("utf-8"),
+        print("uploading {}\\{}.html".format(filepath, web_title))
+        ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
                         "{}.html".format(web_title).encode("utf-8"))
 
 
@@ -139,7 +138,7 @@ def create_mainpage_html(url_list, path, web_title):
             text("{}".format(web_title))
 
     # create html file
-    with open("{}\\{}.html".format(path, web_title).replace("&", "$"), "w", encoding='utf8') as f:
+    with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render())
 
@@ -200,7 +199,7 @@ def main():
             print("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
-            os.remove(path_list[i] + ".html")
+            os.remove("{}.html".format(path_list[i].replace("&", "$")))
 
         ftp_get_size()
         result_url += "FTP user {} used {} MB".format(
@@ -234,12 +233,14 @@ def main():
             map_list = [webtitle_list[i], "http://{}/~{}/{}.html".format(
                 host, user, urllib.parse.quote(webtitle_list[i]))]
             url_list.append(map_list)
+            os.remove("{}.html".format(path_list[i].replace("&", "$")))
 
         os.chdir(path_list[0])
         os.chdir(os.pardir)
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
         create_mainpage_html(url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
+        os.remove("{}\\{}.html".format(os.getcwd(), web_title))
         ftp_get_size()
         result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
             web_title, host, user, urllib.parse.quote(web_title))
