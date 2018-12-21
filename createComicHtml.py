@@ -43,8 +43,8 @@ def ftp_upload(filepath, title, file_array):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        print("uploading " + filepath + ".html")
-        ftp_host.upload((filepath + ".html").encode("utf-8"),
+        print("uploading " + filepath.replace("&","$") + ".html")
+        ftp_host.upload((filepath.replace("&","$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
         print("add directory " + filepath)
         if ftp_host.path.exists(title.encode("utf-8")):
@@ -67,8 +67,8 @@ def ftp_singlehtml_upload(filepath, web_title):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        print("uploading {}\\{}.html".format(filepath, web_title))
-        ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
+        print("uploading {}\\{}.html".format(filepath.replace("&","$"), web_title.replace("&","$")))
+        ftp_host.upload(("{}\\{}.html".format(filepath.replace("&","$"), web_title.replace("&","$"))).encode("utf-8"),
                         "{}.html".format(web_title).encode("utf-8"))
 
 
@@ -109,7 +109,7 @@ def create_html(web_title, file_array, path):
             text("{} ({}P)".format(web_title, str(len(file_array))))
 
     # create html file
-    with open(path + ".html", "w", encoding='utf8') as f:
+    with open("{}.html".format(path).replace("&", "$"), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render())
 
@@ -138,7 +138,7 @@ def create_mainpage_html(url_list, path, web_title):
             text("{}".format(web_title))
 
     # create html file
-    with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
+    with open("{}\\{}.html".format(path, web_title).replace("&", "$"), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render())
 
@@ -182,17 +182,21 @@ def main():
     choise_action = easygui.choicebox("Create .html file successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
+    cmd = ""
     if choise_action == "Open Html on Browser":
         for path in path_list:
-            cmd = "start " + path[:path.index('/') + 1] + "\"" +\
-                path[path.index('/') + 1:] + ".html\""
-            system("start cmd /c \"" + cmd + "\"")
+            if cmd == "":
+                cmd = "start  \"\" \"{}.html\"".format(path.replace("&", "$"))
+            else:
+                cmd += " & start  \"\" \"{}.html\"".format(path.replace("&", "$"))
+        print(cmd)
+        system("start cmd /c \"{}\"".format(cmd))
 
     elif choise_action == "Upload to FTP":
         for i in range(len(path_list)):
             ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
             print("remove file " + webtitle_list[i] + ".html")
-            result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
+            result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
             os.remove(path_list[i] + ".html")
 
@@ -203,14 +207,16 @@ def main():
                         title="Create Html Url", msg="Copy the url")
 
     elif choise_action == "Open Html & Upload to FTP":
+        cmd = ""
         for i in range(len(path_list)):
-            cmd = "start " + path_list[i][:path_list[i].index('/') + 1] + "\"" + \
-                path_list[i][path_list[i].index('/') + 1:] + ".html\""
-            system("start cmd /c \"" + cmd + "\"")
+            if cmd == "":
+                cmd = "start \"\" \"{}.html\"".format(path_list[i].replace("&", "$"))
+            else:
+                cmd += "& start \"\" \"{}.html\"".format(path_list[i].replace("&", "$"))
             ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
-            result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
+            result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
-
+        system("start cmd /c \"{}\"".format(cmd))
         ftp_get_size()
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
@@ -231,7 +237,7 @@ def main():
         create_mainpage_html(url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         ftp_get_size()
-        result_url += "{}\nhttp://{}/~{}/{}.html\n\n".format(
+        result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
             web_title, host, user, urllib.parse.quote(web_title))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
