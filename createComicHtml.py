@@ -43,8 +43,8 @@ def ftp_upload(filepath, title, file_array):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        print("uploading " + filepath.replace("&","$") + ".html")
-        ftp_host.upload((filepath.replace("&","$") + ".html").encode("utf-8"),
+        print("uploading " + filepath.replace("&", "$") + ".html")
+        ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
         print("add directory " + filepath)
         if ftp_host.path.exists(title.encode("utf-8")):
@@ -67,8 +67,9 @@ def ftp_singlehtml_upload(filepath, web_title):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        print("uploading {}\\{}.html".format(filepath.replace("&","$"), web_title.replace("&","$")))
-        ftp_host.upload(("{}\\{}.html".format(filepath.replace("&","$"), web_title.replace("&","$"))).encode("utf-8"),
+        print("uploading {}\\{}.html".format(
+            filepath.replace("&", "$"), web_title.replace("&", "$")))
+        ftp_host.upload(("{}\\{}.html".format(filepath.replace("&", "$"), web_title.replace("&", "$"))).encode("utf-8"),
                         "{}.html".format(web_title).encode("utf-8"))
 
 
@@ -188,7 +189,8 @@ def main():
             if cmd == "":
                 cmd = "start  \"\" \"{}.html\"".format(path.replace("&", "$"))
             else:
-                cmd += " & start  \"\" \"{}.html\"".format(path.replace("&", "$"))
+                cmd += " & start  \"\" \"{}.html\"".format(
+                    path.replace("&", "$"))
         print(cmd)
         system("start cmd /c \"{}\"".format(cmd))
 
@@ -210,9 +212,11 @@ def main():
         cmd = ""
         for i in range(len(path_list)):
             if cmd == "":
-                cmd = "start \"\" \"{}.html\"".format(path_list[i].replace("&", "$"))
+                cmd = "start \"\" \"{}.html\"".format(
+                    path_list[i].replace("&", "$"))
             else:
-                cmd += "& start \"\" \"{}.html\"".format(path_list[i].replace("&", "$"))
+                cmd += "& start \"\" \"{}.html\"".format(
+                    path_list[i].replace("&", "$"))
             ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
