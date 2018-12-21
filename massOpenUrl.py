@@ -3,7 +3,7 @@ import os
 
 def main():
     cmd = ""
-    with open("./list/url_list", "r", encoding='utf8', newline=None) as f:
+    with open(os.path.abspath("./list/url_list"), "r", encoding='utf8', newline=None) as f:
         for line in f:
             if line.strip() == "":
                 continue
