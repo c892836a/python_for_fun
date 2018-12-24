@@ -44,23 +44,23 @@ def ftp_upload(parent_dic, filepath, title, file_array):
             password) as ftp_host:
         ftp_host.chdir("WWW")
         if parent_dic.strip() != "":
-            if ftp_host.path.exists(parent_dic):
+            if ftp_host.path.exists(parent_dic.encode("utf-8")):
                 pass
             else:
                 ftp_host.mkdir(parent_dic.encode("utf-8"))
-            ftp_host.chdir(parent_dic)
+            ftp_host.chdir(parent_dic.encode("utf-8"))
         print("uploading " + filepath.replace("&", "$") + ".html")
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
         print("add directory " + filepath)
-        if ftp_host.path.exists(title):
+        if ftp_host.path.exists(title.encode("utf-8")):
             pass
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
             #     for file in files:
             #         ftp_host.remove(file)
         else:
             ftp_host.mkdir(title.encode("utf-8"))
-        ftp_host.chdir(title)
+        ftp_host.chdir(title.encode("utf-8"))
         os.chdir(filepath)
         current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
