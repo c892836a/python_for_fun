@@ -42,7 +42,7 @@ def initial_logger():
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)-21s %(name)-6s %(levelname)-10s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
-                        handlers=[logging.FileHandler('./logs/log.log', 'w', 'utf-8'), ])
+                        handlers=[logging.FileHandler('./logs/createComicHtml.log', 'w', 'utf-8'), ])
 
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)

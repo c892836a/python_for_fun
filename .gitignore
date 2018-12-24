@@ -1120,3 +1120,5 @@ build/massOpenUrl/COLLECT-00.toc
 build/massOpenUrl/Analysis-00.toc
 __pycache__/massOpenUrl.cpython-36.pyc
 logs/log.log
+logs/createComicHtml.log
+dist/createComicHtml/logs/createComicHtml.log
