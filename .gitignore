@@ -1119,3 +1119,4 @@ build/massOpenUrl/EXE-00.toc
 build/massOpenUrl/COLLECT-00.toc
 build/massOpenUrl/Analysis-00.toc
 __pycache__/massOpenUrl.cpython-36.pyc
+logs/log.log
