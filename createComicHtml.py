@@ -37,26 +37,36 @@ class getExistingDirectories(QFileDialog):
         self.setSidebarUrls(qturl)
 
 
-def ftp_upload(filepath, title, file_array):
+def ftp_upload(parent_dic, filepath, title, file_array):
     with ftputil.FTPHost(
             host,
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
+        if parent_dic.strip() != "":
+            if ftp_host.path.exists(parent_dic):
+                pass
+            else:
+                ftp_host.mkdir(parent_dic.encode("utf-8"))
+            ftp_host.chdir(parent_dic)
         print("uploading " + filepath.replace("&", "$") + ".html")
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
         print("add directory " + filepath)
-        if ftp_host.path.exists(title.encode("utf-8")):
-            ftp_host.chdir(title.encode("utf-8"))
-            for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
-                for file in files:
-                    ftp_host.remove(file)
+        if ftp_host.path.exists(title):
+            pass
+            # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
+            #     for file in files:
+            #         ftp_host.remove(file)
         else:
             ftp_host.mkdir(title.encode("utf-8"))
-            ftp_host.chdir(title.encode("utf-8"))
+        ftp_host.chdir(title)
         os.chdir(filepath)
+        current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
+            if name in current_file_list:
+                print("skipping " + name)
+                continue
             print("uploading " + name)
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
 
@@ -195,7 +205,7 @@ def main():
 
     elif choise_action == "Upload to FTP":
         for i in range(len(path_list)):
-            ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
+            ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             print("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
@@ -216,7 +226,7 @@ def main():
             else:
                 cmd += "& start \"\" \"{}.html\"".format(
                     path_list[i].replace("&", "$"))
-            ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
+            ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
         system("start cmd /c \"{}\"".format(cmd))
@@ -228,16 +238,15 @@ def main():
 
     elif choise_action == "Create a main page":
         url_list = []
-        for i in range(len(path_list)):
-            ftp_upload(path_list[i], webtitle_list[i], file_array_list[i])
-            map_list = [webtitle_list[i], "http://{}/~{}/{}.html".format(
-                host, user, urllib.parse.quote(webtitle_list[i]))]
-            url_list.append(map_list)
-            os.remove("{}.html".format(path_list[i].replace("&", "$")))
-
         os.chdir(path_list[0])
         os.chdir(os.pardir)
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
+        for i in range(len(path_list)):
+            ftp_upload(web_title, path_list[i], webtitle_list[i], file_array_list[i])
+            map_list = [webtitle_list[i], "http://{}/~{}/{}/{}.html".format(
+                host, user, web_title, urllib.parse.quote(webtitle_list[i]))]
+            url_list.append(map_list)
+            os.remove("{}.html".format(path_list[i].replace("&", "$")))
         create_mainpage_html(url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         os.remove("{}\\{}.html".format(os.getcwd(), web_title))
