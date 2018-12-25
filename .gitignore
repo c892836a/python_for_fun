@@ -1122,3 +1122,4 @@ __pycache__/massOpenUrl.cpython-36.pyc
 logs/log.log
 logs/createComicHtml.log
 dist/createComicHtml/logs/createComicHtml.log
+__pycache__/getLogger.cpython-36.pyc

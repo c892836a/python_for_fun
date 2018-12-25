@@ -3,7 +3,7 @@ import ftputil
 import os
 import urllib.parse
 import configparser
-import logging
+import getLogger
 from os import walk
 from os import system
 import dominate.tags as dmtags
@@ -18,6 +18,9 @@ host = ""
 user = ""
 password = ""
 ftp_used_size = 0
+
+ # initual logger
+logger = getLogger.GetLogger().initial_logger("", "createComicHtml")
 
 # FTP upload function
 
@@ -38,19 +41,6 @@ class getExistingDirectories(QFileDialog):
         self.setSidebarUrls(qturl)
 
 
-def initial_logger():
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)-21s %(name)-6s %(levelname)-10s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        handlers=[logging.FileHandler('./logs/createComicHtml.log', 'w', 'utf-8'), ])
-
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(name)s: %(levelname)-10s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
-
 def ftp_upload(parent_dic, filepath, title, file_array):
     with ftputil.FTPHost(
             host,
@@ -64,10 +54,10 @@ def ftp_upload(parent_dic, filepath, title, file_array):
             else:
                 ftp_host.mkdir(parent_dic.encode("utf-8"))
             ftp_host.chdir(parent_dic.encode("utf-8"))
-        logging.info("uploading " + filepath.replace("&", "$") + ".html")
+        logger.info("uploading " + filepath.replace("&", "$") + ".html")
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
-        logging.info("add directory " + filepath)
+        logger.info("add directory " + filepath)
         if ftp_host.path.exists(title.encode("utf-8")):
             pass
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
@@ -80,9 +70,9 @@ def ftp_upload(parent_dic, filepath, title, file_array):
         current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
             if name in current_file_list:
-                logging.info("skipping " + name)
+                logger.info("skipping " + name)
                 continue
-            logging.info("uploading " + name)
+            logger.info("uploading " + name)
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
             ftp_used_size += os.path.getsize(name)
 
@@ -93,7 +83,7 @@ def ftp_singlehtml_upload(filepath, web_title):
             user,
             password) as ftp_host:
         ftp_host.chdir("WWW")
-        logging.info("uploading {}\\{}.html".format(filepath, web_title))
+        logger.info("uploading {}\\{}.html".format(filepath, web_title))
         ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
                         "{}.html".format(web_title).encode("utf-8"))
 
@@ -109,7 +99,7 @@ def ftp_singlehtml_upload(filepath, web_title):
 #             for name in files:
 #                 fullpath = ftp_host.path.join(root, name)
 #                 now_size += ftp_host.path.getsize(fullpath)
-#         logging.info("{} cost {} MB".format(folder_path, str(int(ftp_used_size / 1024 / 1024))))
+#         logger.info("{} cost {} MB".format(folder_path, str(int(ftp_used_size / 1024 / 1024))))
 #         ftp_used_size += now_size
 
 
@@ -130,7 +120,7 @@ def ftp_get_total_size():
                 f.write(str(new_size))
         with ftp_host.open("totalSize", "r", encoding='utf8') as f:
             new_size = int(f.read())
-        logging.info("this time total upgrade {} MB".format(
+        logger.info("this time total upload {} MB".format(
             str(int(ftp_used_size / 1024 / 1024))))
         ftp_used_size += new_size
         with ftp_host.open("totalSize", "w", encoding='utf8') as f:
@@ -204,8 +194,7 @@ def main():
     host = config.get("FTP", "host")
     user = config.get("FTP", "user")
     password = config.get("FTP", "password")
-    # initual logger
-    initial_logger()
+
     # choose directory
     _qapp = QApplication(sys.argv)
     dlg = getExistingDirectories()
@@ -244,17 +233,17 @@ def main():
             else:
                 cmd += " & start  \"\" \"{}.html\"".format(
                     path.replace("&", "$"))
-        logging.info("command: " + cmd)
+        logger.info("command: " + cmd)
         system("start cmd /c \"{}\"".format(cmd))
 
     elif choise_action == "Upload to FTP":
         for i in range(len(path_list)):
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
-            logging.info("remove file " + webtitle_list[i] + ".html")
+            logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
-        logging.info("checking ftp used size")
+        logger.info("checking ftp used size")
         ftp_get_total_size()
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
@@ -274,7 +263,7 @@ def main():
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
         system("start cmd /c \"{}\"".format(cmd))
-        logging.info("checking ftp used size")
+        logger.info("checking ftp used size")
         ftp_get_total_size()
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
@@ -296,13 +285,13 @@ def main():
         create_mainpage_html(url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         os.remove("{}\\{}.html".format(os.getcwd(), web_title))
-        logging.info("checking ftp used size")
+        logger.info("checking ftp used size")
         ftp_get_total_size()
         result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
             web_title, host, user, urllib.parse.quote(web_title))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
-        logging.info("FTP user {} used {} MB".format(
+        logger.info("FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024))))
         easygui.codebox(text=result_url.strip(),
                         title="Create a main page", msg="Copy the url")
