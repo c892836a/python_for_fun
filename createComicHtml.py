@@ -13,13 +13,13 @@ from PyQt5.QtWidgets import (QFileDialog, QAbstractItemView, QListView,
                              QTreeView, QApplication, QDialog)
 from PyQt5.QtCore import QUrl
 
-
+# initial global variable
 host = ""
 user = ""
 password = ""
 ftp_used_size = 0
 
- # initual logger
+# initual logger
 logger = getLogger.GetLogger().initial_logger("", "createComicHtml")
 
 # FTP upload function
@@ -141,13 +141,15 @@ def create_html(web_title, file_array, path):
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
+        dmtags.script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
+        dmtags.script(src="https://gitcdn.link/repo/c892836a/python_for_fun/master/comic.js")
 
     main_div = _body.add(dmtags.div(
         style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
     with main_div:
         _p1 = dmtags.p(style="color:#C2FFFC;")
         for pic in file_array:
-            dmtags.img(width="1200px", src='./{}/{}'.format(web_title, pic))
+            dmtags.img(width="1200px", src='./{}/{}'.format(web_title, pic), cls="compressed")
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
 
@@ -245,6 +247,8 @@ def main():
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         logger.info("checking ftp used size")
         ftp_get_total_size()
+        logger.info("FTP user {} used {} MB".format(
+            user, str(int(ftp_used_size / 1024 / 1024))))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
         easygui.codebox(text=result_url.strip(),
@@ -265,6 +269,8 @@ def main():
         system("start cmd /c \"{}\"".format(cmd))
         logger.info("checking ftp used size")
         ftp_get_total_size()
+        logger.info("FTP user {} used {} MB".format(
+            user, str(int(ftp_used_size / 1024 / 1024))))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
         easygui.codebox(text=result_url.strip(),
