@@ -130,33 +130,53 @@ def ftp_get_total_size():
 # create html content
 
 
-def create_html(web_title, file_array, path):
+def create_html(web_title, web_title_next, web_title_pre, file_array, path):
     _html = dmtags.html()
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body(style="background-color:black;"))
     with _head:
-        dmtags.meta(charset="utf-8")
+        dmtags.meta(charset="utf-8", name="viewport",
+                    content="width=device-width, initial-scale=1")
         dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
+                    rel="stylesheet")
+        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/jquery.fancybox.min.css",
+                    rel="stylesheet")
+        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.25/css/uikit.min.css",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
-        dmtags.script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
-        dmtags.script(src="https://gitcdn.link/repo/c892836a/python_for_fun/master/comic.js")
+        dmtags.script(
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
+        dmtags.script(
+            src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/jquery.fancybox.min.js")
 
     main_div = _body.add(dmtags.div(
         style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
     with main_div:
         _p1 = dmtags.p(style="color:#C2FFFC;")
         for pic in file_array:
-            dmtags.img(width="1200px", src='./{}/{}'.format(web_title, pic), cls="compressed")
+            _a1 = dmtags.a(datafancybox="gallery",
+                           href='./{}/{}'.format(web_title, pic))
+            with _a1:
+                dmtags.img(width="1200px",
+                           src='./{}/{}'.format(web_title, pic))
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
+        _button_div = dmtags.div(
+            style="padding-top: 20px; padding-bottom: 40px;")
+        with _button_div:
+            if web_title_pre != "":
+                dmtags.a("上一話", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 20px;")
+            if web_title_next != "":
+                dmtags.a("下一話", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 20px;")
 
     # create html file
     with open("{}.html".format(path).replace("&", "$"), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
-        f.write(_html.render())
+        f.write(_html.render().replace("datafancybox", "data-fancybox"))
 
 
 def create_mainpage_html(url_list, path, web_title):
@@ -164,19 +184,24 @@ def create_mainpage_html(url_list, path, web_title):
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body(style="background-color:#fcfbeb;"))
     with _head:
-        dmtags.meta(charset="utf-8")
+        dmtags.meta(charset="utf-8", name="viewport",
+                    content="width=device-width, initial-scale=1")
         dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
+                    rel="stylesheet")
+        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css",
+                    rel="stylesheet")
+        dmtags.link(href="https://gitcdn.xyz/repo/c892836a/python_for_fun/master/css/custom.css",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
     main_div = _body.add(dmtags.div(
-        style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
+        style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:36px;"))
 
     with main_div:
         _p1 = dmtags.p(style="color:#14005C;")
         for url in url_list:
-            _p2 = dmtags.p(style="font-size:18px;")
+            _p2 = dmtags.p(style="font-size:22px;")
             with _p2:
                 dmtags.a(url[0], target="_blank", href="{}".format(url[1]))
         with _p1:
@@ -219,7 +244,18 @@ def main():
 
     # create html content
     for i in range(len(path_list)):
-        create_html(webtitle_list[i], file_array_list[i], path_list[i])
+        if i == 0 and len(path_list) == 1:
+            create_html(webtitle_list[i], "", "",
+                        file_array_list[i], path_list[i])
+        elif i == 0:
+            create_html(webtitle_list[i], webtitle_list[i+1],
+                        "", file_array_list[i], path_list[i])
+        elif i == (len(path_list) - 1):
+            create_html(
+                webtitle_list[i], "", webtitle_list[i-1], file_array_list[i], path_list[i])
+        else:
+            create_html(webtitle_list[i], webtitle_list[i+1],
+                        webtitle_list[i-1], file_array_list[i], path_list[i])
 
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
