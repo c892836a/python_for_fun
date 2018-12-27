@@ -5,7 +5,6 @@ certifi==2018.8.24
 colorama==0.3.9
 dominate==2.3.4
 easygui==0.98.1
-flake8==3.5.0
 ftputil==3.4
 future==0.16.0
 isort==4.3.4
@@ -14,10 +13,8 @@ macholib==1.11
 mccabe==0.6.1
 pefile==2018.8.8
 psutil==5.4.7
-py2exe==0.9.2.2
 pycodestyle==2.4.0
 pyflakes==1.6.0
-PyInstaller==3.4
 pylint==2.1.1
 pypiwin32==223
 Pypubsub==4.0.0
@@ -29,4 +26,3 @@ six==1.11.0
 typed-ast==1.1.0
 wincertstore==0.2
 wrapt==1.10.11
-wxPython==4.0.3

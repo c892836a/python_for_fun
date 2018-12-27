@@ -46,7 +46,7 @@ def restrict_foldername(name):
     new_name = name
     if (len(name.encode("utf-8")) > 126):
         new_name = str(name.encode("utf-8")[:126], "utf-8")
-        logger.info("new directory name change to {}".format(new_name))
+        logger.info("new directory name change from {} to {}".format(name, new_name))
     return new_name
 
 
@@ -130,11 +130,15 @@ def ftp_get_total_size():
                     new_size += ftp_host.path.getsize(fullpath)
             with ftp_host.open("totalSize", "w", encoding='utf8') as f:
                 f.write(str(new_size))
-        with ftp_host.open("totalSize", "r", encoding='utf8') as f:
-            new_size = int(f.read())
-        logger.info("this time total upload {} MB".format(
-            str(int(ftp_used_size / 1024 / 1024))))
-        ftp_used_size += new_size
+            logger.info("this time total upload {} MB".format(
+                str(int(ftp_used_size / 1024 / 1024))))
+            ftp_used_size = new_size
+        else:
+            with ftp_host.open("totalSize", "r", encoding='utf8') as f:
+                new_size = int(f.read())
+            logger.info("this time total upload {} MB".format(
+                str(int(ftp_used_size / 1024 / 1024))))
+            ftp_used_size += new_size
         with ftp_host.open("totalSize", "w", encoding='utf8') as f:
             f.write(str(ftp_used_size))
 
@@ -177,12 +181,13 @@ def create_singlepage_html(local, web_title, web_title_next, web_title_pre, file
                     dmtags.img(width="1200px",
                                src='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
         else:
+            web_title_temp = restrict_foldername(web_title)
             for pic in file_array:
                 _a1 = dmtags.a(datafancybox="gallery",
-                               href='./{}/{}'.format(urllib.parse.quote(restrict_foldername(web_title)), urllib.parse.quote(pic)))
+                               href='./{}/{}'.format(urllib.parse.quote(web_title_temp), urllib.parse.quote(pic)))
                 with _a1:
                     dmtags.img(width="1200px",
-                               src='./{}/{}'.format(urllib.parse.quote(restrict_foldername(web_title)), urllib.parse.quote(pic)))
+                               src='./{}/{}'.format(urllib.parse.quote(web_title_temp), urllib.parse.quote(pic)))
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
         _button_bottom_div = dmtags.div(
@@ -280,15 +285,15 @@ def main():
 
     # get file list in directory
     file_array_list = []
-    regex = re.compile(r'.+\.((jpg|jpeg|swf|bmp|png|webp))')
+    regex = re.compile(r'.+\.(jpg|jpeg|swf|bmp|png|webp)')
     for path in path_list:
         file_array = []
         for (_dirpath, _dirnames, filenames) in walk(path):
-            _filenames = []
+            filenames_temp = []
             for f in filenames:
                 if re.search(regex, f):
-                    _filenames.append(f)
-            file_array.extend(_filenames)
+                    filenames_temp.append(f)
+            file_array.extend(filenames_temp)
             break
         file_array_list.append(file_array)
 
