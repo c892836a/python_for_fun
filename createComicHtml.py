@@ -21,7 +21,7 @@ password = ""
 ftp_used_size = 0
 
 # initual logger
-logger = getLogger.GetLogger().initial_logger("", "createComicHtml")
+logger = getLogger.GetLogger("", "createComicHtml").initial_logger()
 
 # FTP upload function
 
