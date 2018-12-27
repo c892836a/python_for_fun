@@ -41,6 +41,14 @@ class getExistingDirectories(QFileDialog):
         self.setSidebarUrls(qturl)
 
 
+def restrict_foldername(name):
+    new_name = name
+    if (len(name.encode("utf-8")) > 126):
+        new_name = str(name.encode("utf-8")[:126], "utf-8")
+        logger.info("new directory name change to {}".format(new_name))
+    return new_name
+
+
 def ftp_upload(parent_dic, filepath, title, file_array):
     with ftputil.FTPHost(
             host,
@@ -48,6 +56,9 @@ def ftp_upload(parent_dic, filepath, title, file_array):
             password) as ftp_host:
         global ftp_used_size
         ftp_host.chdir("WWW")
+        # length limit
+        parent_dic = restrict_foldername(parent_dic)
+        new_title = restrict_foldername(title)
         if parent_dic.strip() != "":
             if ftp_host.path.exists(parent_dic.encode("utf-8")):
                 pass
@@ -58,14 +69,14 @@ def ftp_upload(parent_dic, filepath, title, file_array):
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title + ".html").encode("utf-8"))
         logger.info("add directory " + filepath)
-        if ftp_host.path.exists(title.encode("utf-8")):
+        if ftp_host.path.exists(new_title.encode("utf-8")):
             pass
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
             #     for file in files:
             #         ftp_host.remove(file)
         else:
-            ftp_host.mkdir(title.encode("utf-8"))
-        ftp_host.chdir(title.encode("utf-8"))
+            ftp_host.mkdir(new_title.encode("utf-8"))
+        ftp_host.chdir(new_title.encode("utf-8"))
         os.chdir(filepath)
         current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
@@ -130,10 +141,10 @@ def ftp_get_total_size():
 # create html content
 
 
-def create_html(web_title, web_title_next, web_title_pre, file_array, path):
-    _html = dmtags.html()
+def create_singlepage_html(local, web_title, web_title_next, web_title_pre, file_array, path):
+    _html = dmtags.html(style="background-color:black;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
-                             dmtags.body(style="background-color:black;"))
+                             dmtags.body())
     with _head:
         dmtags.meta(charset="utf-8", name="viewport",
                     content="width=device-width, initial-scale=1")
@@ -154,18 +165,35 @@ def create_html(web_title, web_title_next, web_title_pre, file_array, path):
     main_div = _body.add(dmtags.div(
         style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
     with main_div:
-        _p1 = dmtags.p(style="color:#C2FFFC;")
-        for pic in file_array:
-            _a1 = dmtags.a(datafancybox="gallery",
-                           href='./{}/{}'.format(web_title, pic))
-            with _a1:
-                dmtags.img(width="1200px",
-                           src='./{}/{}'.format(web_title, pic))
+        _p1 = dmtags.p(style="color:#C2FFFC;padding-top: 20px;")
+        _button_top_div = dmtags.div(
+            style="padding-bottom: 30px;")
+        if local:
+            for pic in file_array:
+                _a1 = dmtags.a(datafancybox="gallery",
+                               href='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
+                with _a1:
+                    dmtags.img(width="1200px",
+                               src='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
+        else:
+            for pic in file_array:
+                _a1 = dmtags.a(datafancybox="gallery",
+                               href='./{}/{}'.format(urllib.parse.quote(restrict_foldername(web_title)), urllib.parse.quote(pic)))
+                with _a1:
+                    dmtags.img(width="1200px",
+                               src='./{}/{}'.format(urllib.parse.quote(restrict_foldername(web_title)), urllib.parse.quote(pic)))
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
-        _button_div = dmtags.div(
+        _button_bottom_div = dmtags.div(
             style="padding-top: 20px; padding-bottom: 40px;")
-        with _button_div:
+        with _button_top_div:
+            if web_title_pre != "":
+                dmtags.a("上一話", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 20px;")
+            if web_title_next != "":
+                dmtags.a("下一話", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 20px;")
+        with _button_bottom_div:
             if web_title_pre != "":
                 dmtags.a("上一話", cls="uk-button uk-button-primary",
                          href="./{}.html".format(web_title_pre), style="margin-right: 20px;")
@@ -180,9 +208,9 @@ def create_html(web_title, web_title_next, web_title_pre, file_array, path):
 
 
 def create_mainpage_html(url_list, path, web_title):
-    _html = dmtags.html()
+    _html = dmtags.html(style="background-color:#fcfbeb;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
-                             dmtags.body(style="background-color:#fcfbeb;"))
+                             dmtags.body())
     with _head:
         dmtags.meta(charset="utf-8", name="viewport",
                     content="width=device-width, initial-scale=1")
@@ -190,7 +218,7 @@ def create_mainpage_html(url_list, path, web_title):
                     rel="stylesheet")
         dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css",
                     rel="stylesheet")
-        dmtags.link(href="https://gitcdn.xyz/repo/c892836a/python_for_fun/master/css/custom.css",
+        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/ec28afb448abc73d998a70154753d6e5ce36c125/css/custom.css",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
@@ -199,9 +227,9 @@ def create_mainpage_html(url_list, path, web_title):
         style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:36px;"))
 
     with main_div:
-        _p1 = dmtags.p(style="color:#14005C;")
+        _p1 = dmtags.p(style="color:#470000;")
         for url in url_list:
-            _p2 = dmtags.p(style="font-size:22px;")
+            _p2 = dmtags.p(style="font-size:20px;")
             with _p2:
                 dmtags.a(url[0], target="_blank", href="{}".format(url[1]))
         with _p1:
@@ -211,6 +239,22 @@ def create_mainpage_html(url_list, path, web_title):
     with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render())
+
+
+def create_all_html(local, path_list, webtitle_list, file_array_list):
+    for i in range(len(path_list)):
+        if i == 0 and len(path_list) == 1:
+            create_singlepage_html(local, webtitle_list[i], "", "",
+                                   file_array_list[i], path_list[i])
+        elif i == 0:
+            create_singlepage_html(local, webtitle_list[i], webtitle_list[i+1],
+                                   "", file_array_list[i], path_list[i])
+        elif i == (len(path_list) - 1):
+            create_singlepage_html(local,
+                                   webtitle_list[i], "", webtitle_list[i-1], file_array_list[i], path_list[i])
+        else:
+            create_singlepage_html(local, webtitle_list[i], webtitle_list[i+1],
+                                   webtitle_list[i-1], file_array_list[i], path_list[i])
 
 
 def main():
@@ -242,21 +286,6 @@ def main():
             break
         file_array_list.append(file_array)
 
-    # create html content
-    for i in range(len(path_list)):
-        if i == 0 and len(path_list) == 1:
-            create_html(webtitle_list[i], "", "",
-                        file_array_list[i], path_list[i])
-        elif i == 0:
-            create_html(webtitle_list[i], webtitle_list[i+1],
-                        "", file_array_list[i], path_list[i])
-        elif i == (len(path_list) - 1):
-            create_html(
-                webtitle_list[i], "", webtitle_list[i-1], file_array_list[i], path_list[i])
-        else:
-            create_html(webtitle_list[i], webtitle_list[i+1],
-                        webtitle_list[i-1], file_array_list[i], path_list[i])
-
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
                "Open Html & Upload to FTP", "Create a main page", "Exit"]
@@ -265,6 +294,7 @@ def main():
     result_url = ""
     cmd = ""
     if choise_action == "Open Html on Browser":
+        create_all_html(True, path_list, webtitle_list, file_array_list)
         for path in path_list:
             if cmd == "":
                 cmd = "start  \"\" \"{}.html\"".format(path.replace("&", "$"))
@@ -275,6 +305,7 @@ def main():
         system("start cmd /c \"{}\"".format(cmd))
 
     elif choise_action == "Upload to FTP":
+        create_all_html(False, path_list, webtitle_list, file_array_list)
         for i in range(len(path_list)):
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             logger.info("remove file " + webtitle_list[i] + ".html")
@@ -292,6 +323,7 @@ def main():
 
     elif choise_action == "Open Html & Upload to FTP":
         cmd = ""
+        create_all_html(False, path_list, webtitle_list, file_array_list)
         for i in range(len(path_list)):
             if cmd == "":
                 cmd = "start \"\" \"{}.html\"".format(
@@ -300,8 +332,11 @@ def main():
                 cmd += "& start \"\" \"{}.html\"".format(
                     path_list[i].replace("&", "$"))
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
+            logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
+            os.remove("{}.html".format(path_list[i].replace("&", "$")))
+        create_all_html(True, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
         logger.info("checking ftp used size")
         ftp_get_total_size()
@@ -314,6 +349,7 @@ def main():
 
     elif choise_action == "Create a main page":
         url_list = []
+        create_all_html(False, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
         os.chdir(os.pardir)
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
@@ -339,6 +375,7 @@ def main():
                         title="Create a main page", msg="Copy the url")
 
     elif choise_action == "Exit":
+        create_all_html(True, path_list, webtitle_list, file_array_list)
         pass
 
     else:
