@@ -4,6 +4,7 @@ import os
 import urllib.parse
 import configparser
 import getLogger
+import re
 from os import walk
 from os import system
 import dominate.tags as dmtags
@@ -279,10 +280,15 @@ def main():
 
     # get file list in directory
     file_array_list = []
+    regex = re.compile(r'.+\.((jpg|jpeg|swf|bmp|png|webp))')
     for path in path_list:
         file_array = []
         for (_dirpath, _dirnames, filenames) in walk(path):
-            file_array.extend(filenames)
+            _filenames = []
+            for f in filenames:
+                if re.search(regex, f):
+                    _filenames.append(f)
+            file_array.extend(_filenames)
             break
         file_array_list.append(file_array)
 
