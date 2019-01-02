@@ -146,7 +146,14 @@ def ftp_get_total_size():
 # create html content
 
 
-def create_singlepage_html(local, web_title, web_title_next, web_title_pre, file_array, path):
+def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_title_pre, file_array, path):
+    if is_mainpage:
+        os.chdir(path)
+        os.chdir(os.pardir)
+        parent_web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
+    if local:
+        web_title_next = web_title_next.replace("&", "$")
+        web_title_pre = web_title_pre.replace("&", "$")
     _html = dmtags.html(style="background-color:black;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body())
@@ -194,18 +201,38 @@ def create_singlepage_html(local, web_title, web_title_next, web_title_pre, file
             style="padding-top: 20px; padding-bottom: 40px;")
         with _button_top_div:
             if web_title_pre != "":
-                dmtags.a("上一話", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 20px;")
+                dmtags.a("Prev", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 15px;")
+            else:
+                dmtags.a("Prev", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
+            if is_mainpage:
+                dmtags.a("Index", cls="uk-button uk-button-secondary",
+                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
             if web_title_next != "":
-                dmtags.a("下一話", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 20px;")
+                dmtags.a("Next", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 15px;")
+            else:
+                dmtags.a("Next", cls="uk-button uk-button-secondary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 15px; visibility: hidden;")
+
+
         with _button_bottom_div:
             if web_title_pre != "":
-                dmtags.a("上一話", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 20px;")
+                dmtags.a("Prev", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 15px;")
+            else:
+                dmtags.a("Prev", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
+            if is_mainpage:
+                dmtags.a("Index", cls="uk-button uk-button-primary",
+                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
             if web_title_next != "":
-                dmtags.a("下一話", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 20px;")
+                dmtags.a("Next", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 15px;")
+            else:
+                dmtags.a("Next", cls="uk-button uk-button-primary",
+                         href="./{}.html".format(web_title_next), style="margin-left: 15px;visibility: hidden;")
 
     # create html file
     with open("{}.html".format(path).replace("&", "$"), "w", encoding='utf8') as f:
@@ -237,7 +264,7 @@ def create_mainpage_html(url_list, path, web_title):
         for url in url_list:
             _p2 = dmtags.p(style="font-size:20px;")
             with _p2:
-                dmtags.a(url[0], target="_blank", href="{}".format(url[1]))
+                dmtags.a(url[0], href="{}".format(url[1]))
         with _p1:
             text("{}".format(web_title))
 
@@ -247,19 +274,19 @@ def create_mainpage_html(url_list, path, web_title):
         f.write(_html.render())
 
 
-def create_all_html(local, path_list, webtitle_list, file_array_list):
+def create_all_html(local, is_mainpage, path_list, webtitle_list, file_array_list):
     for i in range(len(path_list)):
         if i == 0 and len(path_list) == 1:
-            create_singlepage_html(local, webtitle_list[i], "", "",
+            create_singlepage_html(local, is_mainpage, webtitle_list[i], "", "",
                                    file_array_list[i], path_list[i])
         elif i == 0:
-            create_singlepage_html(local, webtitle_list[i], webtitle_list[i+1],
+            create_singlepage_html(local, is_mainpage, webtitle_list[i], webtitle_list[i+1],
                                    "", file_array_list[i], path_list[i])
         elif i == (len(path_list) - 1):
-            create_singlepage_html(local,
+            create_singlepage_html(local, is_mainpage,
                                    webtitle_list[i], "", webtitle_list[i-1], file_array_list[i], path_list[i])
         else:
-            create_singlepage_html(local, webtitle_list[i], webtitle_list[i+1],
+            create_singlepage_html(local, is_mainpage, webtitle_list[i], webtitle_list[i+1],
                                    webtitle_list[i-1], file_array_list[i], path_list[i])
 
 
@@ -305,7 +332,7 @@ def main():
     result_url = ""
     cmd = ""
     if choise_action == "Open Html on Browser":
-        create_all_html(True, path_list, webtitle_list, file_array_list)
+        create_all_html(True, False, path_list, webtitle_list, file_array_list)
         for path in path_list:
             if cmd == "":
                 cmd = "start  \"\" \"{}.html\"".format(path.replace("&", "$"))
@@ -316,7 +343,7 @@ def main():
         system("start cmd /c \"{}\"".format(cmd))
 
     elif choise_action == "Upload to FTP":
-        create_all_html(False, path_list, webtitle_list, file_array_list)
+        create_all_html(False, False, path_list, webtitle_list, file_array_list)
         for i in range(len(path_list)):
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             logger.info("remove file " + webtitle_list[i] + ".html")
@@ -334,7 +361,7 @@ def main():
 
     elif choise_action == "Open Html & Upload to FTP":
         cmd = ""
-        create_all_html(False, path_list, webtitle_list, file_array_list)
+        create_all_html(False, False, path_list, webtitle_list, file_array_list)
         for i in range(len(path_list)):
             if cmd == "":
                 cmd = "start \"\" \"{}.html\"".format(
@@ -347,7 +374,7 @@ def main():
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
-        create_all_html(True, path_list, webtitle_list, file_array_list)
+        create_all_html(True, False, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
         logger.info("checking ftp used size")
         ftp_get_total_size()
@@ -360,7 +387,7 @@ def main():
 
     elif choise_action == "Create a main page":
         url_list = []
-        create_all_html(False, path_list, webtitle_list, file_array_list)
+        create_all_html(False, True, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
         os.chdir(os.pardir)
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
@@ -386,7 +413,7 @@ def main():
                         title="Create a main page", msg="Copy the url")
 
     elif choise_action == "Exit":
-        create_all_html(True, path_list, webtitle_list, file_array_list)
+        create_all_html(True, False, path_list, webtitle_list, file_array_list)
         pass
 
     else:
