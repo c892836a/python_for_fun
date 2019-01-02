@@ -9,3 +9,4 @@ config/config_data.ini
 massOpenUrl.spec
 list/
 logs/
+createComicHtml_uuid.spec

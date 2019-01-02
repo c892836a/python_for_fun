@@ -4,6 +4,7 @@ import os
 import urllib.parse
 import configparser
 import getLogger
+import getUuid5
 import re
 from os import walk
 from os import system
@@ -14,17 +15,20 @@ from PyQt5.QtWidgets import (QFileDialog, QAbstractItemView, QListView,
                              QTreeView, QApplication, QDialog)
 from PyQt5.QtCore import QUrl
 
+
 # initial global variable
 host = ""
 user = ""
 password = ""
 ftp_used_size = 0
-
+uuid5 = None
 # initual logger
-logger = getLogger.GetLogger("Comic", "createComicHtml").initial_logger()
+
+logger = getLogger.GetLogger("Comic", "createComicHtml_uuid").initial_logger()
+
 
 # FTP upload function
-
+#
 
 class getExistingDirectories(QFileDialog):
     def __init__(self, *args):
@@ -42,15 +46,6 @@ class getExistingDirectories(QFileDialog):
         self.setSidebarUrls(qturl)
 
 
-def restrict_foldername(name):
-    new_name = name
-    if (len(name.encode("utf-8")) > 126):
-        new_name = str(name.encode("utf-8")[:126], "utf-8")
-        logger.info(
-            "new directory name change from {} to {}".format(name, new_name))
-    return new_name
-
-
 def ftp_upload(parent_dic, filepath, title, file_array):
     with ftputil.FTPHost(
             host,
@@ -59,26 +54,26 @@ def ftp_upload(parent_dic, filepath, title, file_array):
         global ftp_used_size
         ftp_host.chdir("WWW")
         # length limit
-        parent_dic = restrict_foldername(parent_dic)
-        new_title = restrict_foldername(title)
+        parent_dic_uuid = uuid5.get_Unid5_name(parent_dic)
+        title_uuid = uuid5.get_Unid5_name(title)
         if parent_dic.strip() != "":
-            if ftp_host.path.exists(parent_dic.encode("utf-8")):
+            if ftp_host.path.exists(parent_dic_uuid.encode("utf-8")):
                 pass
             else:
-                ftp_host.mkdir(parent_dic.encode("utf-8"))
-            ftp_host.chdir(parent_dic.encode("utf-8"))
+                ftp_host.mkdir(parent_dic_uuid.encode("utf-8"))
+            ftp_host.chdir(parent_dic_uuid.encode("utf-8"))
         logger.info("uploading " + filepath.replace("&", "$") + ".html")
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
-                        (title + ".html").encode("utf-8"))
+                        (title_uuid + ".html").encode("utf-8"))
         logger.info("add directory " + filepath)
-        if ftp_host.path.exists(new_title.encode("utf-8")):
+        if ftp_host.path.exists(title_uuid.encode("utf-8")):
             pass
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
             #     for file in files:
             #         ftp_host.remove(file)
         else:
-            ftp_host.mkdir(new_title.encode("utf-8"))
-        ftp_host.chdir(new_title.encode("utf-8"))
+            ftp_host.mkdir(title_uuid.encode("utf-8"))
+        ftp_host.chdir(title_uuid.encode("utf-8"))
         os.chdir(filepath)
         current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
@@ -95,10 +90,11 @@ def ftp_singlehtml_upload(filepath, web_title):
             host,
             user,
             password) as ftp_host:
+        web_title_uuid = uuid5.get_Unid5_name(web_title)
         ftp_host.chdir("WWW")
         logger.info("uploading {}\\{}.html".format(filepath, web_title))
         ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
-                        "{}.html".format(web_title).encode("utf-8"))
+                        "{}.html".format(web_title_uuid).encode("utf-8"))
 
 
 # def ftp_get_folder_size(folder_path):
@@ -189,17 +185,23 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
                     dmtags.img(width="1200px",
                                src='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
         else:
-            web_title_temp = restrict_foldername(web_title)
+            web_title_uuid = uuid5.get_Unid5_name(web_title)
             for pic in file_array:
                 _a1 = dmtags.a(datafancybox="gallery",
-                               href='./{}/{}'.format(urllib.parse.quote(web_title_temp), urllib.parse.quote(pic)))
+                               href='./{}/{}'.format(urllib.parse.quote(web_title_uuid), urllib.parse.quote(pic)))
                 with _a1:
                     dmtags.img(width="1200px",
-                               src='./{}/{}'.format(urllib.parse.quote(web_title_temp), urllib.parse.quote(pic)))
+                               src='./{}/{}'.format(urllib.parse.quote(web_title_uuid), urllib.parse.quote(pic)))
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
         _button_bottom_div = dmtags.div(
             style="padding-top: 20px; padding-bottom: 40px;")
+        if not local:
+            if web_title_pre != "":
+                web_title_pre = uuid5.get_Unid5_name(web_title_pre)
+            if web_title_next != "":
+                web_title_next = uuid5.get_Unid5_name(web_title_next)
+
         with _button_top_div:
             if web_title_pre != "":
                 dmtags.a("Prev", cls="uk-button uk-button-secondary",
@@ -209,7 +211,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
                          href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
             if is_mainpage:
                 dmtags.a("Index", cls="uk-button uk-button-secondary",
-                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
+                         href="../{}.html".format(uuid5.get_Unid5_name(parent_web_title)), style="margin-right: 15px; margin-left: 15px;")
             if web_title_next != "":
                 dmtags.a("Next", cls="uk-button uk-button-secondary",
                          href="./{}.html".format(web_title_next), style="margin-left: 15px;")
@@ -226,7 +228,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
                          href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
             if is_mainpage:
                 dmtags.a("Index", cls="uk-button uk-button-primary",
-                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
+                         href="../{}.html".format(uuid5.get_Unid5_name(parent_web_title)), style="margin-right: 15px; margin-left: 15px;")
             if web_title_next != "":
                 dmtags.a("Next", cls="uk-button uk-button-primary",
                          href="./{}.html".format(web_title_next), style="margin-left: 15px;")
@@ -299,6 +301,9 @@ def main():
     user = config.get("FTP", "user")
     password = config.get("FTP", "password")
 
+    # initial uuid5
+    global uuid5
+    uuid5 = getUuid5.GetUuid5(host)
     # choose directory
     _qapp = QApplication(sys.argv)
     dlg = getExistingDirectories()
@@ -349,7 +354,7 @@ def main():
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
-                webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
+                webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         logger.info("checking ftp used size")
         ftp_get_total_size()
@@ -374,7 +379,7 @@ def main():
             ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
             logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
-                webtitle_list[i], host, user, urllib.parse.quote(webtitle_list[i]))
+                webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
@@ -397,7 +402,7 @@ def main():
             ftp_upload(web_title, path_list[i],
                        webtitle_list[i], file_array_list[i])
             map_list = [webtitle_list[i], "http://{}/~{}/{}/{}.html".format(
-                host, user, web_title, urllib.parse.quote(webtitle_list[i]))]
+                host, user, uuid5.get_Unid5_name(web_title), uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         create_mainpage_html(url_list, os.getcwd(), web_title)
@@ -406,7 +411,7 @@ def main():
         logger.info("checking ftp used size")
         ftp_get_total_size()
         result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
-            web_title, host, user, urllib.parse.quote(web_title))
+            web_title, host, user, uuid5.get_Unid5_name(web_title))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
         logger.info("FTP user {} used {} MB".format(
