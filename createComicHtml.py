@@ -167,6 +167,8 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
                     rel="stylesheet")
         dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.25/css/uikit.min.css",
                     rel="stylesheet")
+        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
+                    rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
@@ -202,37 +204,37 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
             style="padding-top: 20px; padding-bottom: 40px;")
         with _button_top_div:
             if web_title_pre != "":
-                dmtags.a("Prev", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 15px;")
+                dmtags.a("Prev", cls="uk-button uk-button-secondary n-bt",
+                         href="./{}.html".format(web_title_pre))
             else:
-                dmtags.a("Prev", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
+                dmtags.a("Prev", cls="uk-button uk-button-secondary h-bt",
+                         href="./{}.html".format(web_title_pre))
             if is_mainpage:
-                dmtags.a("Index", cls="uk-button uk-button-secondary",
-                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
+                dmtags.a("Index", cls="uk-button uk-button-secondary n-bt",
+                         href="../{}.html".format(parent_web_title))
             if web_title_next != "":
-                dmtags.a("Next", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 15px;")
+                dmtags.a("Next", cls="uk-button uk-button-secondary n-bt",
+                         href="./{}.html".format(web_title_next))
             else:
-                dmtags.a("Next", cls="uk-button uk-button-secondary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 15px; visibility: hidden;")
+                dmtags.a("Next", cls="uk-button uk-button-secondary h-bt",
+                         href="./{}.html".format(web_title_next))
 
         with _button_bottom_div:
             if web_title_pre != "":
-                dmtags.a("Prev", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 15px;")
+                dmtags.a("Prev", cls="uk-button uk-button-primary n-bt",
+                         href="./{}.html".format(web_title_pre))
             else:
-                dmtags.a("Prev", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_pre), style="margin-right: 15px; visibility: hidden;")
+                dmtags.a("Prev", cls="uk-button uk-button-primary h-bt",
+                         href="./{}.html".format(web_title_pre))
             if is_mainpage:
-                dmtags.a("Index", cls="uk-button uk-button-primary",
-                         href="../{}.html".format(parent_web_title), style="margin-right: 15px; margin-left: 15px;")
+                dmtags.a("Index", cls="uk-button uk-button-primary n-bt",
+                         href="../{}.html".format(parent_web_title))
             if web_title_next != "":
-                dmtags.a("Next", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 15px;")
+                dmtags.a("Next", cls="uk-button uk-button-primary n-bt",
+                         href="./{}.html".format(web_title_next))
             else:
-                dmtags.a("Next", cls="uk-button uk-button-primary",
-                         href="./{}.html".format(web_title_next), style="margin-left: 15px;visibility: hidden;")
+                dmtags.a("Next", cls="uk-button uk-button-primary h-bt",
+                         href="./{}.html".format(web_title_next))
 
     # create html file
     with open("{}.html".format(path).replace("&", "$"), "w", encoding='utf8') as f:
@@ -243,7 +245,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
 def create_mainpage_html(url_list, path, web_title):
     _html = dmtags.html(style="background-color:#fcfbeb;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
-                             dmtags.body())
+                             dmtags.body(cls="main_page"))
     with _head:
         dmtags.meta(charset="utf-8", name="viewport",
                     content="width=device-width, initial-scale=1")
@@ -251,7 +253,7 @@ def create_mainpage_html(url_list, path, web_title):
                     rel="stylesheet")
         dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css",
                     rel="stylesheet")
-        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/ec28afb448abc73d998a70154753d6e5ce36c125/css/custom.css",
+        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
                     rel="stylesheet")
         dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
