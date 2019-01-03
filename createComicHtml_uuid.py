@@ -335,7 +335,7 @@ def main():
 
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
-               "Open Html & Upload to FTP", "Create a main page", "Exit"]
+               "Open Html & Upload to FTP", "Upload to FTP & Create a main page", "Exit"]
     choise_action = easygui.choicebox("Create .html file successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
@@ -359,6 +359,9 @@ def main():
             logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
+            logger.info(webtitle_list[i])
+            logger.info("http://{}/~{}/{}.html".format(host, user,
+                                                       uuid5.get_Unid5_name(webtitle_list[i])))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         logger.info("checking ftp used size")
         ftp_get_total_size()
@@ -384,6 +387,9 @@ def main():
             logger.info("remove file " + webtitle_list[i] + ".html")
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
+            logger.info(webtitle_list[i])
+            logger.info("http://{}/~{}/{}.html".format(host, user,
+                                                       uuid5.get_Unid5_name(webtitle_list[i])))
             os.remove("{}.html".format(path_list[i].replace("&", "$")))
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
@@ -396,7 +402,7 @@ def main():
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 
-    elif choise_action == "Create a main page":
+    elif choise_action == "Upload to FTP & Create a main page":
         url_list = []
         create_all_html(False, True, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
@@ -416,6 +422,9 @@ def main():
         ftp_get_total_size()
         result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
             web_title, host, user, uuid5.get_Unid5_name(web_title))
+        logger.info(web_title)
+        logger.info("http://{}/~{}/{}.html".format(host,
+                                                   user, uuid5.get_Unid5_name(web_title)))
         result_url += "FTP user {} used {} MB".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
         logger.info("FTP user {} used {} MB".format(
