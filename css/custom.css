@@ -1,12 +1,28 @@
-a:link {
+.main_page a:link {
     color: #2a24bf;
 }
-a:visited {
+.main_page a:visited {
     color: #506b7a;
 }
-a:hover {
+.main_page a:hover {
     color: #820087;
 }
-a:active {
+.main_page a:active {
     color: #7f2206;
+}
+.n-bt {
+    margin:15px !important;
+}
+.h-bt {
+    margin:15px !important;
+    visibility: hidden;
+}
+@media screen and (max-width: 1000px) {
+    .n-bt {
+        margin:0px !important;
+    }
+    .h-bt {
+        margin:0px !important;
+        visibility: hidden;
+    }
 }
