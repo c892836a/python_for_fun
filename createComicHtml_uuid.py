@@ -177,8 +177,10 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
         style="text-align:center; font-family: 'Noto Sans JP', sans-serif; font-size:32px;"))
     with main_div:
         _p1 = dmtags.p(style="color:#C2FFFC;padding-top: 20px;")
-        _button_top_div = dmtags.div(
-            style="padding-bottom: 30px;")
+        if web_title_next == "" and web_title_pre == "":
+            _button_top_div = dmtags.div(style="display: none;")
+        else:
+            _button_top_div = dmtags.div(style="padding-bottom: 30px;")
         if local:
             for pic in file_array:
                 _a1 = dmtags.a(datafancybox="gallery",
