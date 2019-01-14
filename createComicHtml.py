@@ -294,6 +294,15 @@ def create_all_html(local, is_mainpage, path_list, webtitle_list, file_array_lis
                                    webtitle_list[i-1], file_array_list[i], path_list[i])
 
 
+# format filename to sort correctly
+def format_filename(name):
+    f_name = name.split('.')[0]
+    if f_name.isdigit():
+        return "{:03d}".format(int(f_name))
+    else:
+        return f_name
+
+
 def main():
     # initual ftp user data
     config = configparser.ConfigParser()
@@ -321,7 +330,7 @@ def main():
         file_array = []
         for (_dirpath, _dirnames, filenames) in walk(path):
             filenames_temp = []
-            for f in filenames:
+            for f in sorted(filenames, key=lambda x: format_filename(x)):
                 if re.search(regex, f):
                     filenames_temp.append(f)
             file_array.extend(filenames_temp)
