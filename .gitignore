@@ -5,7 +5,7 @@ dist/
 __pycache__/
 build/
 createComicHtml.spec
-config/config_data.ini
+config/
 massOpenUrl.spec
 list/
 logs/

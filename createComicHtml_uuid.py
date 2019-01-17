@@ -6,6 +6,7 @@ import configparser
 import getLogger
 import getUuid5
 import re
+import time
 from os import walk
 from os import system
 import dominate.tags as dmtags
@@ -22,18 +23,30 @@ user = ""
 password = ""
 ftp_used_size = 0
 uuid5 = None
+preference_file = "preference_path"
 # initual logger
 
 logger = getLogger.GetLogger("Comic", "createComicHtml_uuid").initial_logger()
 
 
-# FTP upload function
-#
+def get_preference_path(config_file):
+    path_list = []
+    with open("./config/{}".format(config_file), "r", encoding='utf8') as f:
+        for path in f:
+            path_list.append(path)
+    return path_list
+
+# folder choose ui
+
 
 class getExistingDirectories(QFileDialog):
     def __init__(self, *args):
+        qturl = []
         qturl = [QUrl('file:'), QUrl(
             "file:///" + os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))]
+        path_list = get_preference_path(preference_file)
+        for path in path_list:
+            qturl.append(QUrl("file:///{}".format(path.strip())))
         super(getExistingDirectories, self).__init__(*args)
         self.setOption(self.DontUseNativeDialog, True)
         self.setFileMode(self.Directory)
@@ -44,6 +57,8 @@ class getExistingDirectories(QFileDialog):
             QAbstractItemView.ExtendedSelection)
         # self.setDirectory(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))
         self.setSidebarUrls(qturl)
+
+# FTP
 
 
 def ftp_upload(parent_dic, filepath, title, file_array):
@@ -155,6 +170,8 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body())
     with _head:
+        dmtags.comment("The page is genarated on {} by Ein".format(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
         dmtags.meta(charset="utf-8", name="viewport",
                     content="width=device-width, initial-scale=1")
         dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
@@ -251,6 +268,8 @@ def create_mainpage_html(url_list, path, web_title):
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body(cls="main_page"))
     with _head:
+        dmtags.comment("The page is genarated on {} by Ein".format(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
         dmtags.meta(charset="utf-8", name="viewport",
                     content="width=device-width, initial-scale=1")
         dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
@@ -308,7 +327,7 @@ def format_filename(name):
 def main():
     # initual ftp user data
     config = configparser.ConfigParser()
-    config.read('./config/config_data.ini')
+    config.read('./config/config_comic.ini')
     global host, user, password
     host = config.get("FTP", "host")
     user = config.get("FTP", "user")
