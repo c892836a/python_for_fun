@@ -1,21 +1,23 @@
-import easygui
-import ftputil
-import os
 import urllib.parse
-import configparser
-import getLogger
-import getUuid5
-import re
-import time
+import os
 from os import walk
 from os import system
+import configparser
+import re
+import time
+import sys
+import ftputil
+import easygui
 import dominate.tags as dmtags
 from dominate.util import text
-import sys
 from PyQt5.QtWidgets import (QFileDialog, QAbstractItemView, QListView,
                              QTreeView, QApplication, QDialog)
 from PyQt5.QtCore import QUrl
+import getLogger
+import getUuid5
 
+# const variable
+PREFERENCE_FILE = "preference_path"
 
 # initial global variable
 host = ""
@@ -23,7 +25,10 @@ user = ""
 password = ""
 ftp_used_size = 0
 uuid5 = None
-preference_file = "preference_path"
+total_file_number = 0
+process_file_number = 0
+upload_file_number = 0
+
 # initual logger
 
 logger = getLogger.GetLogger("Comic", "createComicHtml_uuid").initial_logger()
@@ -39,15 +44,15 @@ def get_preference_path(config_file):
 # folder choose ui
 
 
-class getExistingDirectories(QFileDialog):
+class _getExistingDirectories(QFileDialog):
     def __init__(self, *args):
         qturl = []
         qturl = [QUrl('file:'), QUrl(
             "file:///" + os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))]
-        path_list = get_preference_path(preference_file)
+        path_list = get_preference_path(PREFERENCE_FILE)
         for path in path_list:
             qturl.append(QUrl("file:///{}".format(path.strip())))
-        super(getExistingDirectories, self).__init__(*args)
+        super(_getExistingDirectories, self).__init__(*args)
         self.setOption(self.DontUseNativeDialog, True)
         self.setFileMode(self.Directory)
         self.setOption(self.ShowDirsOnly, True)
@@ -66,7 +71,7 @@ def ftp_upload(parent_dic, filepath, title, file_array):
             host,
             user,
             password) as ftp_host:
-        global ftp_used_size
+        global ftp_used_size, process_file_number, upload_file_number
         ftp_host.chdir("WWW")
         # length limit
         parent_dic_uuid = uuid5.get_Unid5_name(parent_dic)
@@ -77,10 +82,10 @@ def ftp_upload(parent_dic, filepath, title, file_array):
             else:
                 ftp_host.mkdir(parent_dic_uuid.encode("utf-8"))
             ftp_host.chdir(parent_dic_uuid.encode("utf-8"))
-        logger.info("uploading " + filepath.replace("&", "$") + ".html")
+        logger.info("uploading %s.html", filepath.replace("&", "$"))
         ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
                         (title_uuid + ".html").encode("utf-8"))
-        logger.info("add directory " + filepath)
+        logger.info("add directory %s", filepath)
         if ftp_host.path.exists(title_uuid.encode("utf-8")):
             pass
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
@@ -92,12 +97,16 @@ def ftp_upload(parent_dic, filepath, title, file_array):
         os.chdir(filepath)
         current_file_list = ftp_host.listdir(ftp_host.curdir)
         for name in file_array:
+            process_file_number += 1
             if name in current_file_list:
-                logger.info("skipping " + name)
+                logger.info("skipping %s ---------------- %s%%", name,
+                            str(round(process_file_number * 100 / total_file_number, 1)))
                 continue
-            logger.info("uploading " + name)
+            logger.info("uploading %s ---------------- %s%%", name,
+                        str(round(process_file_number * 100 / total_file_number, 1)))
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
             ftp_used_size += os.path.getsize(name)
+            upload_file_number += 1
 
 
 def ftp_singlehtml_upload(filepath, web_title):
@@ -107,7 +116,7 @@ def ftp_singlehtml_upload(filepath, web_title):
             password) as ftp_host:
         web_title_uuid = uuid5.get_Unid5_name(web_title)
         ftp_host.chdir("WWW")
-        logger.info("uploading {}\\{}.html".format(filepath, web_title))
+        logger.info("uploading %s\\%s.html", filepath, web_title)
         ftp_host.upload(("{}\\{}.html".format(filepath, web_title)).encode("utf-8"),
                         "{}.html".format(web_title_uuid).encode("utf-8"))
 
@@ -142,14 +151,14 @@ def ftp_get_total_size():
                     new_size += ftp_host.path.getsize(fullpath)
             with ftp_host.open("totalSize", "w", encoding='utf8') as f:
                 f.write(str(new_size))
-            logger.info("this time total upload {} MB".format(
-                str(int(ftp_used_size / 1024 / 1024))))
+            logger.info("this time total upload %s files, %s MB", upload_file_number,
+                        str(int(ftp_used_size / 1024 / 1024)))
             ftp_used_size = new_size
         else:
             with ftp_host.open("totalSize", "r", encoding='utf8') as f:
                 new_size = int(f.read())
-            logger.info("this time total upload {} MB".format(
-                str(int(ftp_used_size / 1024 / 1024))))
+            logger.info("this time total upload %s files, %s MB", upload_file_number,
+                        str(int(ftp_used_size / 1024 / 1024)))
             ftp_used_size += new_size
         with ftp_host.open("totalSize", "w", encoding='utf8') as f:
             f.write(str(ftp_used_size))
@@ -158,7 +167,8 @@ def ftp_get_total_size():
 # create html content
 
 
-def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_title_pre, file_array, path):
+def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
+                           web_title_pre, file_array, path):
     if is_mainpage:
         os.chdir(path)
         os.chdir(os.pardir)
@@ -176,13 +186,16 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
                     content="width=device-width, initial-scale=1")
         dmtags.link(href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:500",
                     rel="stylesheet")
-        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/jquery.fancybox.min.css",
+        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/"
+                         "jquery.fancybox.min.css",
                     rel="stylesheet")
-        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
+        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/"
+                         "b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
                     rel="stylesheet")
-        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.25/css/uikit.min.css",
+        dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/uikit/"
+                         "3.0.0-rc.25/css/uikit.min.css",
                     rel="stylesheet")
-        dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
+        dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG"
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
         dmtags.script(
@@ -201,18 +214,22 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next, web_ti
         if local:
             for pic in file_array:
                 _a1 = dmtags.a(datafancybox="gallery",
-                               href='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
+                               href='./{}/{}'.format(urllib.parse.quote(web_title),
+                                                     urllib.parse.quote(pic)))
                 with _a1:
                     dmtags.img(width="1200px",
-                               src='./{}/{}'.format(urllib.parse.quote(web_title), urllib.parse.quote(pic)))
+                               src='./{}/{}'.format(urllib.parse.quote(web_title),
+                                                    urllib.parse.quote(pic)))
         else:
             web_title_uuid = uuid5.get_Unid5_name(web_title)
             for pic in file_array:
                 _a1 = dmtags.a(datafancybox="gallery",
-                               href='./{}/{}'.format(urllib.parse.quote(web_title_uuid), urllib.parse.quote(pic)))
+                               href='./{}/{}'.format(urllib.parse.quote(web_title_uuid),
+                                                     urllib.parse.quote(pic)))
                 with _a1:
                     dmtags.img(width="1200px",
-                               src='./{}/{}'.format(urllib.parse.quote(web_title_uuid), urllib.parse.quote(pic)))
+                               src='./{}/{}'.format(urllib.parse.quote(web_title_uuid),
+                                                    urllib.parse.quote(pic)))
         with _p1:
             text("{} ({}P)".format(web_title, str(len(file_array))))
         _button_bottom_div = dmtags.div(
@@ -276,9 +293,10 @@ def create_mainpage_html(url_list, path, web_title):
                     rel="stylesheet")
         dmtags.link(href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css",
                     rel="stylesheet")
-        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
+        dmtags.link(href="https://rawcdn.githack.com/c892836a/python_for_fun/"
+                         "b2fa53022b0ae5a26d6f140c38b860a210c21040/css/custom.css",
                     rel="stylesheet")
-        dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG" +
+        dmtags.link(href="https://lh3.googleusercontent.com/S__tM5EYqZDFLuv1uPG"
                     "mlZTTLLyNAbUvljzDH8-S0Pxq2nA9fnFF3SwU0w0wF8PlMu_hv3WhLMdlFodKbQ=s0",
                     rel="shortcut icon", type="image/vnd.microsoft.icon")
     main_div = _body.add(dmtags.div(
@@ -300,19 +318,20 @@ def create_mainpage_html(url_list, path, web_title):
 
 
 def create_all_html(local, is_mainpage, path_list, webtitle_list, file_array_list):
-    for i in range(len(path_list)):
+    for i, element in enumerate(path_list):
         if i == 0 and len(path_list) == 1:
             create_singlepage_html(local, is_mainpage, webtitle_list[i], "", "",
-                                   file_array_list[i], path_list[i])
+                                   file_array_list[i], element)
         elif i == 0:
             create_singlepage_html(local, is_mainpage, webtitle_list[i], webtitle_list[i+1],
-                                   "", file_array_list[i], path_list[i])
+                                   "", file_array_list[i], element)
         elif i == (len(path_list) - 1):
             create_singlepage_html(local, is_mainpage,
-                                   webtitle_list[i], "", webtitle_list[i-1], file_array_list[i], path_list[i])
+                                   webtitle_list[i], "", webtitle_list[i-1],
+                                   file_array_list[i], element)
         else:
             create_singlepage_html(local, is_mainpage, webtitle_list[i], webtitle_list[i+1],
-                                   webtitle_list[i-1], file_array_list[i], path_list[i])
+                                   webtitle_list[i-1], file_array_list[i], element)
 
 
 # format filename to sort correctly
@@ -320,25 +339,24 @@ def format_filename(name):
     f_name = name.split('.')[0]
     if f_name.isdigit():
         return "{:03d}".format(int(f_name))
-    else:
-        return f_name
+    return f_name
 
 
 def main():
+    global host, user, password, uuid5, total_file_number
+
     # initual ftp user data
     config = configparser.ConfigParser()
     config.read('./config/config_comic.ini')
-    global host, user, password
     host = config.get("FTP", "host")
     user = config.get("FTP", "user")
     password = config.get("FTP", "password")
 
     # initial uuid5
-    global uuid5
     uuid5 = getUuid5.GetUuid5(host)
     # choose directory
     _qapp = QApplication(sys.argv)
-    dlg = getExistingDirectories()
+    dlg = _getExistingDirectories()
     webtitle_list = []
     if dlg.exec_() == QDialog.Accepted:
         path_list = dlg.selectedFiles()
@@ -357,6 +375,7 @@ def main():
             for f in sorted(filenames, key=lambda x: format_filename(x)):
                 if re.search(regex, f):
                     filenames_temp.append(f)
+                    total_file_number += 1
             file_array.extend(filenames_temp)
             break
         file_array_list.append(file_array)
@@ -369,6 +388,7 @@ def main():
     result_url = ""
     cmd = ""
     if choise_action == "Open Html on Browser":
+        time_start = time.time()
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         for path in path_list:
             if cmd == "":
@@ -376,93 +396,115 @@ def main():
             else:
                 cmd += " & start  \"\" \"{}.html\"".format(
                     path.replace("&", "$"))
-        logger.info("command: " + cmd)
+        logger.info("command: %s", cmd)
         system("start cmd /c \"{}\"".format(cmd))
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        logger.info("spent time: %s", time_spent)
 
     elif choise_action == "Upload to FTP":
+        time_start = time.time()
         create_all_html(False, False, path_list,
                         webtitle_list, file_array_list)
-        for i in range(len(path_list)):
-            ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
-            logger.info("remove file " + webtitle_list[i] + ".html")
+        for i, element in enumerate(path_list):
+            ftp_upload("", element, webtitle_list[i], file_array_list[i])
+            logger.info("remove file %s.html", webtitle_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
             logger.info(webtitle_list[i])
-            logger.info("http://{}/~{}/{}.html".format(host, user,
-                                                       uuid5.get_Unid5_name(webtitle_list[i])))
-            os.remove("{}.html".format(path_list[i].replace("&", "$")))
+            logger.info("http://%s/~%s/%s.html", host, user,
+                        uuid5.get_Unid5_name(webtitle_list[i]))
+            os.remove("{}.html".format(element.replace("&", "$")))
         logger.info("checking ftp used size")
         ftp_get_total_size()
-        logger.info("FTP user {} used {} MB".format(
-            user, str(int(ftp_used_size / 1024 / 1024))))
-        result_url += "FTP user {} used {} MB".format(
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        logger.info("FTP user %s used %s MB", user,
+                    str(int(ftp_used_size / 1024 / 1024)))
+        logger.info("spent time: %s", time_spent)
+        result_url += "FTP user {} used {} MB\r\n".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
+        result_url += "spent time: {}".format(time_spent)
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 
     elif choise_action == "Open Html & Upload to FTP":
+        time_start = time.time()
         cmd = ""
         create_all_html(False, False, path_list,
                         webtitle_list, file_array_list)
-        for i in range(len(path_list)):
+        for i, element in enumerate(path_list):
             if cmd == "":
                 cmd = "start \"\" \"{}.html\"".format(
-                    path_list[i].replace("&", "$"))
+                    element.replace("&", "$"))
             else:
                 cmd += "& start \"\" \"{}.html\"".format(
-                    path_list[i].replace("&", "$"))
-            ftp_upload("", path_list[i], webtitle_list[i], file_array_list[i])
-            logger.info("remove file " + webtitle_list[i] + ".html")
+                    element.replace("&", "$"))
+            ftp_upload("", element, webtitle_list[i], file_array_list[i])
+            logger.info("remove file %s.html", webtitle_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
             logger.info(webtitle_list[i])
-            logger.info("http://{}/~{}/{}.html".format(host, user,
-                                                       uuid5.get_Unid5_name(webtitle_list[i])))
-            os.remove("{}.html".format(path_list[i].replace("&", "$")))
+            logger.info("http://%s/~%s/%s.html", host, user,
+                        uuid5.get_Unid5_name(webtitle_list[i]))
+            os.remove("{}.html".format(element.replace("&", "$")))
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
         logger.info("checking ftp used size")
         ftp_get_total_size()
-        logger.info("FTP user {} used {} MB".format(
-            user, str(int(ftp_used_size / 1024 / 1024))))
-        result_url += "FTP user {} used {} MB".format(
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        logger.info("FTP user %s used %s MB", user,
+                    str(int(ftp_used_size / 1024 / 1024)))
+        logger.info("spent time: %s", time_spent)
+        result_url += "FTP user {} used {} MB\r\n".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
+        result_url += "spent time: {}".format(time_spent)
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 
     elif choise_action == "Upload to FTP & Create a main page":
+        time_start = time.time()
         url_list = []
         create_all_html(False, True, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
         os.chdir(os.pardir)
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
-        for i in range(len(path_list)):
-            ftp_upload(web_title, path_list[i],
+        for i, element in enumerate(path_list):
+            ftp_upload(web_title, element,
                        webtitle_list[i], file_array_list[i])
             map_list = [webtitle_list[i], "http://{}/~{}/{}/{}.html".format(
-                host, user, uuid5.get_Unid5_name(web_title), uuid5.get_Unid5_name(webtitle_list[i]))]
+                host, user, uuid5.get_Unid5_name(web_title),
+                uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
-            os.remove("{}.html".format(path_list[i].replace("&", "$")))
+            os.remove("{}.html".format(element.replace("&", "$")))
         create_mainpage_html(url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         os.remove("{}\\{}.html".format(os.getcwd(), web_title))
         logger.info("checking ftp used size")
         ftp_get_total_size()
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
         result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
             web_title, host, user, uuid5.get_Unid5_name(web_title))
         logger.info(web_title)
-        logger.info("http://{}/~{}/{}.html".format(host,
-                                                   user, uuid5.get_Unid5_name(web_title)))
-        result_url += "FTP user {} used {} MB".format(
+        logger.info("http://%s/~%s/%s.html", host, user,
+                    uuid5.get_Unid5_name(web_title))
+        result_url += "FTP user {} used {} MB\r\n".format(
             user, str(int(ftp_used_size / 1024 / 1024)))
-        logger.info("FTP user {} used {} MB".format(
-            user, str(int(ftp_used_size / 1024 / 1024))))
+        result_url += "spent time: {}".format(time_spent)
+        logger.info("FTP user %s used %s MB", user,
+                    str(int(ftp_used_size / 1024 / 1024)))
+        logger.info("spent time: %s", time_spent)
         easygui.codebox(text=result_url.strip(),
                         title="Create a main page", msg="Copy the url")
 
     elif choise_action == "Exit":
+        time_start = time.time()
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
-        pass
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        logger.info("spent time: %s", time_spent)
 
     else:
         pass
