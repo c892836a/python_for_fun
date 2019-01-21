@@ -16,7 +16,7 @@ from PyQt5.QtCore import QUrl
 import getLogger
 import getUuid5
 
-# const variable
+# const
 PREFERENCE_FILE = "preference_path"
 
 # initial global variable

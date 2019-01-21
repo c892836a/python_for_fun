@@ -15,7 +15,7 @@ from PyQt5.QtCore import QUrl
 import easygui
 import getLogger
 
-# const variable
+# const
 PREFERENCE_FILE = "preference_path"
 
 # initial global variable
