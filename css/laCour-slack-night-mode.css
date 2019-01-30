@@ -1092,7 +1092,7 @@ ts-message.show_recap:not(.is_pinned) { background: rgba(0, 0, 0, 0.15); }
 
 ts-message.show_recap:not(.is_pinned):hover { background: rgba(0, 0, 0, 0.15); }
 
-ts-message:hover:not(.standalone):not(.multi_delete_mode):not(.highlight):not(.new_reply):not(.show_broadcast_indicator).is_pinned {background: #380000 !important;}
+ts-message:hover:not(.highlight):not(.new_reply).is_pinned {background: #380000 !important;}
 
 .ephemeral.message .message_content { color: #e6e6e6; }
 
