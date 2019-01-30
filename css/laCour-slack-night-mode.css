@@ -900,7 +900,7 @@ input[disabled], input[readonly], textarea[disabled], textarea[readonly] { backg
 
 .c-message--focus:not(.c-message--highlight):not(.c-message--standalone):not(.c-message--pinned):not(.c-message--ephemeral):not(.c-message--custom_response):not(.c-message--starred):not(.c-message--sli_highlight) { background: rgba(0, 0, 0, 0.1); }
 
-.c-message--pinned, .c-message--sli_highlight:not(.c-message--sli_highlight_negative), .c-message--starred { background: rgba(255, 136, 0, 0.158); }
+.c-message--pinned, .c-message--sli_highlight:not(.c-message--sli_highlight_negative), .c-message--starred { background: rgba(82, 23, 0, 0.548); }
 
 .c-message--custom_response { background: rgba(0, 0, 0, 0.15); }
 
@@ -1092,7 +1092,7 @@ ts-message.show_recap:not(.is_pinned) { background: rgba(0, 0, 0, 0.15); }
 
 ts-message.show_recap:not(.is_pinned):hover { background: rgba(0, 0, 0, 0.15); }
 
-ts-message:hover:not(.highlight):not(.new_reply).is_pinned {background: #380000 !important;}
+ts-message:hover:not(.highlight):not(.new_reply).is_pinned {background: #6600005d !important;}
 
 .ephemeral.message .message_content { color: #e6e6e6; }
 
