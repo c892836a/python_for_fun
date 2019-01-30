@@ -1,4 +1,4 @@
-body { background: #222; color: #e6e6e6; font-family: sans-serif,monospace; }
+body { background: #222; color: #e6e6e6; }
 
 a { color: #949494; }
 
@@ -1589,7 +1589,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket { color: #bf360c; }
 
 .light_theme ts-message { color: #e6e6e6; }
 
-.light_theme ts-message .message_content .message_sender, .light_theme ts-message .message_content .meta .message_sender:hover { color: #e6e6e6 !important; }
+.light_theme ts-message .message_content .message_sender, .light_theme ts-message .message_content .meta .message_sender:hover { color: #292929 !important; }
 
 .light_theme ts-message .comment::before { color: #949494; }
 
