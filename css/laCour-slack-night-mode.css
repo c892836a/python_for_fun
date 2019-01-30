@@ -1014,7 +1014,7 @@ ts-message.active .meta, ts-message.message--focus .meta, ts-message:hover .meta
 
 ts-message.active .meta.msg_inline_file_preview_toggler a, ts-message.message--focus .meta.msg_inline_file_preview_toggler a, ts-message:hover .meta.msg_inline_file_preview_toggler a { color: #949494 !important; }
 
-ts-message.is_pinned { background: rgba(0, 0, 0, 0.15); }
+ts-message.is_pinned { background: rgba(43, 0, 0, 0.164); }
 
 ts-message .timestamp { color: #949494; }
 
