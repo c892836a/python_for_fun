@@ -170,6 +170,7 @@ def ftp_get_total_size():
 
 def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
                            web_title_pre, file_array, path):
+    parent_web_title = ""
     if is_mainpage:
         os.chdir(path)
         os.chdir(os.pardir)
