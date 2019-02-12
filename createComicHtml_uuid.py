@@ -239,6 +239,8 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
                 web_title_pre = uuid5.get_Unid5_name(web_title_pre)
             if web_title_next != "":
                 web_title_next = uuid5.get_Unid5_name(web_title_next)
+            if parent_web_title != "":
+                parent_web_title = uuid5.get_Unid5_name(parent_web_title)
 
         with _button_top_div:
             if web_title_pre != "":
@@ -249,7 +251,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
                          href="./{}.html".format(web_title_pre))
             if is_mainpage:
                 dmtags.a("Index", cls="uk-button uk-button-secondary n-bt",
-                         href="../{}.html".format(uuid5.get_Unid5_name(parent_web_title)))
+                         href="../{}.html".format(parent_web_title))
             if web_title_next != "":
                 dmtags.a("Next", cls="uk-button uk-button-secondary n-bt",
                          href="./{}.html".format(web_title_next))
@@ -266,7 +268,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
                          href="./{}.html".format(web_title_pre))
             if is_mainpage:
                 dmtags.a("Index", cls="uk-button uk-button-primary n-bt",
-                         href="../{}.html".format(uuid5.get_Unid5_name(parent_web_title)))
+                         href="../{}.html".format(parent_web_title))
             if web_title_next != "":
                 dmtags.a("Next", cls="uk-button uk-button-primary n-bt",
                          href="./{}.html".format(web_title_next))
@@ -280,7 +282,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
         f.write(_html.render().replace("datafancybox", "data-fancybox"))
 
 
-def create_mainpage_html(url_list, path, web_title):
+def create_mainpage_html(local, url_list, path, web_title):
     _html = dmtags.html(style="background-color:#fcfbeb;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body(cls="main_page"))
@@ -312,9 +314,16 @@ def create_mainpage_html(url_list, path, web_title):
             text("{}".format(web_title))
 
     # create html file
-    with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
-        f.write("<!DOCTYPE html>\n")
-        f.write(_html.render())
+    if local:
+        os.chdir(path)
+        os.chdir(os.pardir)
+        with open("{}.html".format(web_title), "w", encoding='utf8') as f:
+            f.write("<!DOCTYPE html>\n")
+            f.write(_html.render())
+    else:
+        with open("{}\\{}.html".format(path, web_title), "w", encoding='utf8') as f:
+            f.write("<!DOCTYPE html>\n")
+            f.write(_html.render())
 
 
 def create_all_html(local, is_mainpage, path_list, webtitle_list, file_array_list):
@@ -382,7 +391,8 @@ def main():
 
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
-               "Open Html & Upload to FTP", "Upload to FTP & Create a main page", "Exit"]
+               "Open Html & Upload to FTP", "Upload to FTP & Create a main page",
+               "Only Create a main page", "Exit"]
     choise_action = easygui.choicebox("Create .html file successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
@@ -478,7 +488,7 @@ def main():
                 uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
             os.remove("{}.html".format(element.replace("&", "$")))
-        create_mainpage_html(url_list, os.getcwd(), web_title)
+        create_mainpage_html(False, url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         os.remove("{}\\{}.html".format(os.getcwd(), web_title))
         logger.info("checking ftp used size")
@@ -495,6 +505,26 @@ def main():
         result_url += "spent time: {}".format(time_spent)
         logger.info("FTP user %s used %s MB", user,
                     str(int(ftp_used_size / 1024 / 1024)))
+        logger.info("spent time: %s", time_spent)
+        easygui.codebox(text=result_url.strip(),
+                        title="Create a main page", msg="Copy the url")
+
+    elif choise_action == "Only Create a main page":
+        time_start = time.time()
+        url_list = []
+        create_all_html(True, True, path_list, webtitle_list, file_array_list)
+        os.chdir(path_list[0])
+        os.chdir(os.pardir)
+        web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
+        for i, element in enumerate(path_list):
+            map_list = [webtitle_list[i],
+                        "./{}/{}.html".format(web_title, webtitle_list[i])]
+            url_list.append(map_list)
+        create_mainpage_html(True, url_list, os.getcwd(), web_title)
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        logger.info(web_title)
+        result_url += "spent time: {}".format(time_spent)
         logger.info("spent time: %s", time_spent)
         easygui.codebox(text=result_url.strip(),
                         title="Create a main page", msg="Copy the url")
