@@ -10,3 +10,4 @@ massOpenUrl.spec
 list/
 logs/
 createComicHtml_uuid.spec
+getRandomResult.spec
