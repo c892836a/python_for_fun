@@ -12,7 +12,7 @@ def start_random():
             count += 1
 
     print(count)
-    if count < (random_number / 2) + 1:
+    if count < int(random_number / 2) + 1:
         print("Go to shower")
     else:
         print("Please start your show!")
