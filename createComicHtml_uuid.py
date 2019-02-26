@@ -66,7 +66,7 @@ class _getExistingDirectories(QFileDialog):
 # FTP
 
 
-def ftp_upload(parent_dic, filepath, title, file_array):
+def ftp_upload(parent_dic, filepath, title, file_array, upload_type):
     with ftputil.FTPHost(
             host,
             user,
@@ -87,7 +87,11 @@ def ftp_upload(parent_dic, filepath, title, file_array):
                         (title_uuid + ".html").encode("utf-8"))
         logger.info("add directory %s", filepath)
         if ftp_host.path.exists(title_uuid.encode("utf-8")):
-            pass
+            if upload_type == "directory skip":
+                process_file_number += len(file_array)
+                logger.info("skipping %s ---------------- %s%%", title,
+                            str(round(process_file_number * 100 / total_file_number, 1)))
+                return
             # for _root, _dirs, files in ftp_host.walk(ftp_host.curdir):
             #     for file in files:
             #         ftp_host.remove(file)
@@ -99,9 +103,10 @@ def ftp_upload(parent_dic, filepath, title, file_array):
         for name in file_array:
             process_file_number += 1
             if name in current_file_list:
-                logger.info("skipping %s ---------------- %s%%", name,
-                            str(round(process_file_number * 100 / total_file_number, 1)))
-                continue
+                if upload_type == "file skip":
+                    logger.info("skipping %s ---------------- %s%%", name,
+                                str(round(process_file_number * 100 / total_file_number, 1)))
+                    continue
             logger.info("uploading %s ---------------- %s%%", name,
                         str(round(process_file_number * 100 / total_file_number, 1)))
             ftp_host.upload(name.encode("utf-8"), name.encode("utf-8"))
@@ -392,8 +397,8 @@ def main():
 
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
-               "Open Html & Upload to FTP", "Upload to FTP & Create a main page",
-               "Only Create a main page", "Exit"]
+               "Upload to FTP & Open Html", "Create a main page & Upload to FTP",
+               "Create a main page locally", "Exit"]
     choise_action = easygui.choicebox("Create .html file successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
@@ -414,11 +419,15 @@ def main():
         logger.info("spent time: %s", time_spent)
 
     elif choise_action == "Upload to FTP":
+        choices = ["directory skip", "file skip", "overwrite"]
+        bt_choice = easygui.buttonbox(
+            "ftp action", "choose ftp action", choices)
         time_start = time.time()
         create_all_html(False, False, path_list,
                         webtitle_list, file_array_list)
         for i, element in enumerate(path_list):
-            ftp_upload("", element, webtitle_list[i], file_array_list[i])
+            ftp_upload(
+                "", element, webtitle_list[i], file_array_list[i], bt_choice)
             logger.info("remove file %s.html", webtitle_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
@@ -439,7 +448,10 @@ def main():
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 
-    elif choise_action == "Open Html & Upload to FTP":
+    elif choise_action == "Upload to FTP & Open Html":
+        choices = ["directory skip", "file skip", "overwrite"]
+        bt_choice = easygui.buttonbox(
+            "ftp action", "choose ftp action", choices)
         time_start = time.time()
         cmd = ""
         create_all_html(False, False, path_list,
@@ -451,7 +463,8 @@ def main():
             else:
                 cmd += "& start \"\" \"{}.html\"".format(
                     element.replace("&", "$"))
-            ftp_upload("", element, webtitle_list[i], file_array_list[i])
+            ftp_upload(
+                "", element, webtitle_list[i], file_array_list[i], bt_choice)
             logger.info("remove file %s.html", webtitle_list[i])
             result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
                 webtitle_list[i], host, user, uuid5.get_Unid5_name(webtitle_list[i]))
@@ -474,7 +487,10 @@ def main():
         easygui.codebox(text=result_url.strip(),
                         title="Create Html Url", msg="Copy the url")
 
-    elif choise_action == "Upload to FTP & Create a main page":
+    elif choise_action == "Create a main page & Upload to FTP":
+        choices = ["directory skip", "file skip", "overwrite"]
+        bt_choice = easygui.buttonbox(
+            "ftp action", "choose ftp action", choices)
         time_start = time.time()
         url_list = []
         create_all_html(False, True, path_list, webtitle_list, file_array_list)
@@ -483,7 +499,7 @@ def main():
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
         for i, element in enumerate(path_list):
             ftp_upload(web_title, element,
-                       webtitle_list[i], file_array_list[i])
+                       webtitle_list[i], file_array_list[i], bt_choice)
             map_list = [webtitle_list[i], "http://{}/~{}/{}/{}.html".format(
                 host, user, uuid5.get_Unid5_name(web_title),
                 uuid5.get_Unid5_name(webtitle_list[i]))]
@@ -510,7 +526,7 @@ def main():
         easygui.codebox(text=result_url.strip(),
                         title="Create a main page", msg="Copy the url")
 
-    elif choise_action == "Only Create a main page":
+    elif choise_action == "Create a main page locally":
         time_start = time.time()
         url_list = []
         create_all_html(True, True, path_list, webtitle_list, file_array_list)
