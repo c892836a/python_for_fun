@@ -2063,7 +2063,7 @@ html.no_touch a.filetype_button_web:hover .file_title { color: #e6e6e6; }
 
 .p-file_list__file.c-pillow_file_container--full_width:hover { background: #545454; border-color: #545454; }
 
-.c-pillow_file { background-color: black}
+.c-pillow_file, .c-pillow_file__slide { background-color: black}
 
 .p-downloads_list__shift_hint { background: linear-gradient(180deg, rgba(255, 255, 255, 0), #222 25%, #222); color: #e6e6e6; }
 
