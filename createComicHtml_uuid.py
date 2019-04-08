@@ -82,8 +82,8 @@ def ftp_upload(parent_dic, filepath, title, file_array, upload_type):
             else:
                 ftp_host.mkdir(parent_dic_uuid.encode("utf-8"))
             ftp_host.chdir(parent_dic_uuid.encode("utf-8"))
-        logger.info("uploading %s.html", filepath.replace("&", "$"))
-        ftp_host.upload((filepath.replace("&", "$") + ".html").encode("utf-8"),
+        logger.info("uploading %s.html", special_character_encode(filepath))
+        ftp_host.upload((special_character_encode(filepath) + ".html").encode("utf-8"),
                         (title_uuid + ".html").encode("utf-8"))
         logger.info("add directory %s", filepath)
         if ftp_host.path.exists(title_uuid.encode("utf-8")):
@@ -180,8 +180,8 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
         os.chdir(os.pardir)
         parent_web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
     if local:
-        web_title_next = web_title_next.replace("&", "$")
-        web_title_pre = web_title_pre.replace("&", "$")
+        web_title_next = special_character_encode(web_title_next)
+        web_title_pre = special_character_encode(web_title_pre)
     _html = dmtags.html(style="background-color:black;")
     _head, _body = _html.add(dmtags.head(dmtags.title(web_title)),
                              dmtags.body())
@@ -283,7 +283,7 @@ def create_singlepage_html(local, is_mainpage, web_title, web_title_next,
                          href="./{}.html".format(web_title_next))
 
     # create html file
-    with open("{}.html".format(path).replace("&", "$"), "w", encoding='utf8') as f:
+    with open("{}.html".format(special_character_encode(path)), "w", encoding='utf8') as f:
         f.write("<!DOCTYPE html>\n")
         f.write(_html.render().replace("datafancybox", "data-fancybox"))
 
@@ -356,6 +356,11 @@ def format_filename(name):
         return "{:03d}".format(int(f_name))
     return f_name
 
+# replace special character
+def special_character_encode(string):
+    trantab = str.maketrans("#&", "$$")
+    return string.translate(trantab)
+
 
 def main():
     global host, user, password, uuid5, total_file_number
@@ -408,12 +413,12 @@ def main():
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         for path in path_list:
             if cmd == "":
-                cmd = "start  \"\" \"{}.html\"".format(path.replace("&", "$"))
+                cmd = "start  \"\" \"{}.html\"".format(special_character_encode(path))
             else:
-                cmd += " & start  \"\" \"{}.html\"".format(
-                    path.replace("&", "$"))
+                cmd += " & start  \"\" \"{}.html\"".format(special_character_encode(path))
         logger.info("command: %s", cmd)
-        system("start cmd /c \"{}\"".format(cmd))
+        command = "start cmd /c \"{}\"".format(cmd)
+        system(command)
         time_spent = time.strftime(
             "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
         logger.info("spent time: %s", time_spent)
@@ -434,7 +439,7 @@ def main():
             logger.info(webtitle_list[i])
             logger.info("http://%s/~%s/%s.html", host, user,
                         uuid5.get_Unid5_name(webtitle_list[i]))
-            os.remove("{}.html".format(element.replace("&", "$")))
+            os.remove("{}.html".format(special_character_encode(element)))
         logger.info("checking ftp used size")
         ftp_get_total_size()
         time_spent = time.strftime(
@@ -458,11 +463,9 @@ def main():
                         webtitle_list, file_array_list)
         for i, element in enumerate(path_list):
             if cmd == "":
-                cmd = "start \"\" \"{}.html\"".format(
-                    element.replace("&", "$"))
+                cmd = "start \"\" \"{}.html\"".format(special_character_encode(element))
             else:
-                cmd += "& start \"\" \"{}.html\"".format(
-                    element.replace("&", "$"))
+                cmd += "& start \"\" \"{}.html\"".format(special_character_encode(element))
             ftp_upload(
                 "", element, webtitle_list[i], file_array_list[i], bt_choice)
             logger.info("remove file %s.html", webtitle_list[i])
@@ -471,7 +474,7 @@ def main():
             logger.info(webtitle_list[i])
             logger.info("http://%s/~%s/%s.html", host, user,
                         uuid5.get_Unid5_name(webtitle_list[i]))
-            os.remove("{}.html".format(element.replace("&", "$")))
+            os.remove("{}.html".format(special_character_encode(element)))
         create_all_html(True, False, path_list, webtitle_list, file_array_list)
         system("start cmd /c \"{}\"".format(cmd))
         logger.info("checking ftp used size")
@@ -504,7 +507,7 @@ def main():
                 host, user, uuid5.get_Unid5_name(web_title),
                 uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
-            os.remove("{}.html".format(element.replace("&", "$")))
+            os.remove("{}.html".format(special_character_encode(element)))
         create_mainpage_html(False, url_list, os.getcwd(), web_title)
         ftp_singlehtml_upload(os.getcwd(), web_title)
         os.remove("{}\\{}.html".format(os.getcwd(), web_title))
@@ -535,7 +538,7 @@ def main():
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
         for i, element in enumerate(path_list):
             map_list = [webtitle_list[i],
-                        "./{}/{}.html".format(web_title, webtitle_list[i])]
+                        "./{}/{}.html".format(web_title, special_character_encode(webtitle_list[i]))]
             url_list.append(map_list)
         create_mainpage_html(True, url_list, os.getcwd(), web_title)
         time_spent = time.strftime(
