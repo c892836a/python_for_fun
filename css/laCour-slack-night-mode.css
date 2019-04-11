@@ -4193,7 +4193,7 @@ comments { box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.25); }
 
 .c-message_kit__background, .p-threads_view__footer {background: #151515}
 
-.p-threads_view_root, .p-threads_view_reply, .p-threads_view__footer, .p_threads_view_load_older_button {border: 1px solid #000000;}
+.p-threads_view_root, .p-threads_view_reply, .p-threads_view__footer, .p_threads_view_load_older_button {border: 1px solid #151515;}
 
 .p_threads_view_load_older_button, .c-message__reply_bar {background: #212429}
 
@@ -4201,6 +4201,6 @@ comments { box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.25); }
 
 .p-threads_view {background: #272727}
 
-.c-icon, .c-channel_name__text {color: #ffdeab}
+.c-icon, .c-channel_name__text {color: #a1855a}
 
 .p-thread_participant_list {color: #b6b6b6}
