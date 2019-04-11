@@ -4195,8 +4195,12 @@ comments { box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.25); }
 
 .p_threads_view_load_older_button, .c-message__reply_bar {background: #212429}
 
-.p_threads_view_load_older_button:hover {background: #2b2b2b}
+.p_threads_view_load_older_button:hover {background: #3f3f3f}
 
 .p-threads_view {background: #272727}
 
-.p-threads_view__footer {background: #141414}
+.p-threads_view__footer {background: #000000}
+
+.c-channel_name__text {color: #ffdeab}
+
+.p-thread_participant_list {color: #b6b6b6}
