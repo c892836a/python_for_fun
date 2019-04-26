@@ -499,6 +499,7 @@ def main():
         create_all_html(False, True, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
         os.chdir(os.pardir)
+        main_page_path = os.getcwd()
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
         for i, element in enumerate(path_list):
             ftp_upload(web_title, element,
@@ -508,9 +509,9 @@ def main():
                 uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
             os.remove("{}.html".format(special_character_encode(element)))
-        create_mainpage_html(False, url_list, os.getcwd(), web_title)
-        ftp_singlehtml_upload(os.getcwd(), web_title)
-        os.remove("{}\\{}.html".format(os.getcwd(), web_title))
+        create_mainpage_html(False, url_list, main_page_path, web_title)
+        ftp_singlehtml_upload(main_page_path, web_title)
+        os.remove("{}\\{}.html".format(main_page_path, web_title))
         logger.info("checking ftp used size")
         ftp_get_total_size()
         time_spent = time.strftime(
@@ -538,6 +539,7 @@ def main():
         create_all_html(False, True, path_list, webtitle_list, file_array_list)
         os.chdir(path_list[0])
         os.chdir(os.pardir)
+        main_page_path = os.getcwd()
         web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
         for i, element in enumerate(path_list):
             ftp_upload(web_title, element,
@@ -546,10 +548,10 @@ def main():
                 host, user, uuid5.get_Unid5_name(web_title),
                 uuid5.get_Unid5_name(webtitle_list[i]))]
             url_list.append(map_list)
-        create_mainpage_html(False, url_list, os.getcwd(), web_title)
-        ftp_singlehtml_upload(os.getcwd(), web_title)
-        os.remove("{}\\{}.html".format(os.getcwd(), web_title))
-        create_mainpage_html(True, url_list, os.getcwd(), web_title)
+        create_mainpage_html(False, url_list, main_page_path, web_title)
+        ftp_singlehtml_upload(main_page_path, web_title)
+        os.remove("{}\\{}.html".format(main_page_path, web_title))
+        create_mainpage_html(True, url_list, main_page_path, web_title)
         logger.info("checking ftp used size")
         ftp_get_total_size()
         time_spent = time.strftime(
