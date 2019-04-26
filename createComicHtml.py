@@ -523,6 +523,44 @@ def main():
         easygui.codebox(text=result_url.strip(),
                         title="Create a main page", msg="Copy the url")
 
+    elif choise_action == "Create a main page locally & Upload to FTP":
+        choices = ["directory skip", "file skip", "overwrite"]
+        bt_choice = easygui.buttonbox(
+            "ftp action", "choose ftp action", choices)
+        time_start = time.time()
+        url_list = []
+        create_all_html(False, True, path_list, webtitle_list, file_array_list)
+        os.chdir(path_list[0])
+        os.chdir(os.pardir)
+        web_title = str(os.getcwd())[str(os.getcwd()).rindex("\\") + 1:]
+        for i, element in enumerate(path_list):
+            ftp_upload(web_title, element,
+                       webtitle_list[i], file_array_list[i], bt_choice)
+            map_list = [webtitle_list[i], "http://{}/~{}/{}/{}.html".format(
+                host, user, web_title, urllib.parse.quote(webtitle_list[i]))]
+            url_list.append(map_list)
+        create_mainpage_html(False, url_list, os.getcwd(), web_title)
+        ftp_singlehtml_upload(os.getcwd(), web_title)
+        os.remove("{}\\{}.html".format(os.getcwd(), web_title))
+        create_mainpage_html(True, url_list, os.getcwd(), web_title)
+        logger.info("checking ftp used size")
+        ftp_get_total_size()
+        time_spent = time.strftime(
+            "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
+        result_url += "{}\r\nhttp://{}/~{}/{}.html\r\n\r\n".format(
+            web_title, host, user, urllib.parse.quote(web_title))
+        logger.info(web_title)
+        logger.info("http://%s/~%s/%s.html", host,
+                    user, urllib.parse.quote(web_title))
+        result_url += "FTP user {} used {} MB\r\n".format(
+            user, str(int(ftp_used_size / 1024 / 1024)))
+        result_url += "spent time: {}".format(time_spent)
+        logger.info("FTP user %s used %s MB", user,
+                    str(int(ftp_used_size / 1024 / 1024)))
+        logger.info("spent time: %s", time_spent)
+        easygui.codebox(text=result_url.strip(),
+                        title="Create a main page", msg="Copy the url")
+
     elif choise_action == "Create a main page locally":
         time_start = time.time()
         url_list = []
@@ -538,10 +576,7 @@ def main():
         time_spent = time.strftime(
             "%H hours, %M minunts, %S seconds", time.gmtime(time.time() - time_start))
         logger.info(web_title)
-        result_url += "spent time: {}".format(time_spent)
         logger.info("spent time: %s", time_spent)
-        easygui.codebox(text=result_url.strip(),
-                        title="Create a main page", msg="Copy the url")
 
     elif choise_action == "Exit":
         time_start = time.time()
