@@ -396,7 +396,7 @@ def main():
     # do some action
     choices = ["Open Html on Browser", "Upload to FTP",
                "Upload to FTP & Open Html", "Create a main page & Upload to FTP",
-               "Create a main page locally", "Exit"]
+               "Create a main page locally & Upload to FTP", "Create a main page locally", "Exit"]
     choise_action = easygui.choicebox("Create .html file successfully \
         \n\nNext action?", "createComicHtml", choices)
     result_url = ""
