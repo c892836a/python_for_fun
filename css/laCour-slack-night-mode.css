@@ -750,7 +750,7 @@ input[disabled], input[readonly], textarea[disabled], textarea[readonly] { backg
 
 .slack_menu_download { background-color: #363636; }
 
-/* .slack_menu_download .ts_icon_times { color: #949494; } */
+.slack_menu_download ts_icon { color: #949494; }
 
 #menu_items_scroller::-webkit-scrollbar-track { background: #222 !important; }
 
@@ -4205,4 +4205,4 @@ comments { box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.25); }
 
 .p-thread_participant_list {color: #b6b6b6}
 
-.slack_menu_download ts_icon { color: #949494; }
+.slack_menu_download .close_flexpane { color: #949494; }
