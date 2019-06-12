@@ -750,7 +750,7 @@ input[disabled], input[readonly], textarea[disabled], textarea[readonly] { backg
 
 .slack_menu_download { background-color: #363636; }
 
-.slack_menu_download ts-icon { color: #949494; }
+.slack_menu_download .ts_icon_times { color: #949494; }
 
 #menu_items_scroller::-webkit-scrollbar-track { background: #222 !important; }
 
