@@ -380,7 +380,7 @@ def main():
 
     # get file list in directory
     file_array_list = []
-    regex = re.compile(r'.+\.(jpg|jpeg|bmp|png|webp)')
+    regex = re.compile(r'.+\.(jpg|jpeg|bmp|png|webp)', re.IGNORECASE)
     for path in path_list:
         file_array = []
         for (_dirpath, _dirnames, filenames) in walk(path):
